@@ -1,0 +1,13 @@
+ {
+  "mqtt":
+  {
+    "port": 1883,
+    "reconnectPeriod": 500,
+    "connectTimeout": 5000
+  },
+  "atem":
+  {
+    "host": "10.32.121.250",
+    "debug": false
+  }
+ }
