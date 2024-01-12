@@ -1,16 +1,18 @@
 {
   "name": "btmqtt-broker",
-  "version": "0.0.1",
-  "packages": {},
-  "dependencies": {
-    "aedes": "^0.49.0",
-    "atem-connection": "github:scnmtv/atem-connection",
-    "mqtt": "^4.3.7",
-    "websocket-stream": "^5.5.2",
-    "yaml": "^2.2.1"
+  "version": "1.0.0",
+  "description": "Main function is provide MQTT service for btmqtt-esp to send and receive bluetooth payload to blackmagic camera via MQTT.",
+  "main": "app.js",
+  "scripts": {
+    "run": "node app.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "devDependencies": {
-    "rimraf": "^4.4.1",
-    "yarn": "^1.22.19"
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "aedes": "^0.50.1",
+    "atem-connection": "^3.4.0",
+    "mqtt": "^5.3.4",
+    "websocket-stream": "^5.5.2"
   }
 }

@@ -2,8 +2,7 @@
   "mqtt":
   {
     "port": 1883,
-    "reconnectPeriod": 500,
-    "connectTimeout": 5000
+    "wsPort": 2883
   },
   "atem":
   {
