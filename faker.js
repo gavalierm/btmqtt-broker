@@ -10,6 +10,64 @@ const mqttClient = new MqttClientService();
 const ProtocolService = require("./services/blackmagicProtocol.js");
 const protocol = new ProtocolService();
 
+// Example usage
+const CameraControlCommandService = require("./services/CameraControlCommand.js");
+const ccu = new CameraControlCommandService();
+
+const dataObject = {
+	class: 'ccu',
+	id: 2,
+	destination: 255,
+	operation: 255,
+	data: {
+		id: 14,
+		category_name: "Video",
+		category_id: 1,
+		category_key: "video",
+		name: "ISO",
+		key: "iso",
+		data_type: "int8",
+		index: {
+			frame_rate: {
+				name: "Frame rate",
+				key: 'frame_rate',
+				value: 24
+			},
+			m_rate: {
+				name: "M-rate",
+				key: 'm_rate',
+				value: 1
+			},
+			dimensions: {
+				name: "Dimensions",
+				key: 'dimensions',
+				value: 3
+			},
+			interlaced: {
+				name: "M-rate",
+				key: 'interlaced'
+			},
+			color_space: {
+				name: "Color space",
+				key: 'color_space'
+			}
+		},
+		minimum: 0,
+		maximum: 2147483647,
+		interpretation: "ISO value"
+	}
+};
+
+var data = ccu.convertToDatagram(dataObject);
+console.log(ccu.bufferToStringWithSpaces(data));
+
+var data = ccu.convertToDataobject(data);
+console.log(data);
+
+var data = ccu.convertToDataobject([254, 9, 0, 0, 1, 0, 1, 0, 24, 1, 3, 0, 0, 0, 0, 0]);
+console.log(data);
+
+
 return;
 
 
@@ -32,7 +90,7 @@ var fakerInterval = setInterval(function() {
 
 		console.log(protocol.to_fixed16('0xfd9a'));
 
-		var data = { type: 'ccu', destination: 255, operation: 0, data: { video: { iso: { value: 400 } } } };
+		var data = { type: 'ccu', destination: 255, operation: 0, data: { video: { iso: { type: 'int9', value: 400 } } } };
 		console.log(protocol.jsonToPayload(data));
 		return;
 

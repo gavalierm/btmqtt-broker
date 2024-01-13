@@ -1,7 +1,13 @@
-class DatagramConverter {
+//https://docs.allthingstalk.com/developers/javascript-conversion/
+const assert = require('assert');
+require('console');
+const fs = require('fs')
+//
+module.exports = class CameraControlCommand {
 	constructor() {
 		// Define the lengths of different types for padding calculations
-		this.typeLengths = {
+		this.TYPES_LENGHTS = {
+			void: 0,
 			boolean: 1,
 			int8: 1,
 			int16: 2,
@@ -10,18 +16,18 @@ class DatagramConverter {
 			string: 0, // Variable length, calculated dynamically
 			fixed16: 2,
 		};
-		this.dataTypes = {
+		this.DATA_TYPES = {
 			void: 0,
-			boolean: 1,
-			int8: 2,
-			int16: 3,
-			int32: 4,
-			int64: 5,
-			string: 6,
+			boolean: 0,
+			int8: 1,
+			int16: 2,
+			int32: 3,
+			int64: 4,
+			string: 5,
 			fixed16: 128,
 		};
 
-		this.struct = {
+		this.STRUCT = {
 			destination: 0,
 			commandLength: 1,
 			commandId: 2,
@@ -50,16 +56,16 @@ class DatagramConverter {
 	}
 
 	// Function to calculate the length of the datablock after conversion
-	calculateDatablockLength(data) {
+	calculateDatablockLength(dataBlock) {
 		let length = 0;
 
-		if (dataObject.data.hasOwnProperty('index') && dataObject.data.index !== undefined) {
-			for (const k in dataObject.data.index) {
-				if (dataObject.data.data_type === 'string') {
+		if (dataBlock.hasOwnProperty('index') && dataBlock.index !== undefined) {
+			for (const k in dataBlock.index) {
+				if (dataBlock.data_type === 'string') {
 					// For strings, add the length of the string and the null terminator
-					length += Buffer.from(dataObject.data.index[k].value, 'utf-8').length + 1;
+					length += Buffer.from(dataBlock.index[k].value, 'utf-8').length + 1;
 				} else {
-					length += this.typeLengths[dataObject.data.data_type];
+					length += this.TYPES_LENGHTS[dataBlock.data_type];
 				}
 			}
 		}
@@ -68,6 +74,14 @@ class DatagramConverter {
 
 	// Function to convert dataObject to datagram
 	convertToDatagram(dataObject) {
+
+		assert(dataObject !== undefined, 'dataObject must be specified');
+		assert(dataObject.destination !== undefined, 'destination must be specified');
+		assert(dataObject.operation !== undefined, 'operation must be specified');
+		assert(dataObject.data !== undefined, 'data must be specified');
+		assert(dataObject.id !== undefined, 'id must be specified');
+
+
 		const destination = dataObject.destination;
 		const operation = dataObject.operation;
 		const datablockLength = this.calculateDatablockLength(dataObject.data);
@@ -82,7 +96,7 @@ class DatagramConverter {
 		buffer.writeUInt8(0, offset + this.STRUCT.source); // Unused byte
 		buffer.writeUInt8(dataObject.data.category_id, offset + this.STRUCT.category);
 		buffer.writeUInt8(dataObject.data.id, offset + this.STRUCT.parameter);
-		buffer.writeUInt8(this.dataTypes[dataObject.data.data_type], offset + this.STRUCT.operationType);
+		buffer.writeUInt8(this.DATA_TYPES[dataObject.data.data_type], offset + this.STRUCT.operationType);
 		buffer.writeUInt8(operation, offset + this.STRUCT.payloadStart);
 
 		// Write datablock
@@ -104,6 +118,9 @@ class DatagramConverter {
 
 		// Write the value based on the type
 		switch (type) {
+			case 'void':
+				//void do not have value
+				break;
 			case 'boolean':
 				buffer.writeUInt8(value ? 1 : 0, offset);
 				break;
@@ -135,7 +152,7 @@ class DatagramConverter {
 
 		// Add padding if necessary
 		//const padding = this.calculatePadding(buffer.length - offset);
-		//buffer.fill(0, offset + this.typeLengths[type], offset + this.typeLengths[type] + padding);
+		//buffer.fill(0, offset + this.TYPES_LENGHTS[type], offset + this.TYPES_LENGHTS[type] + padding);
 	}
 
 	// Function to reverse convert datagram to dataObject
@@ -148,7 +165,7 @@ class DatagramConverter {
 		const id = datagram.readUInt8(2);
 		const categoryId = datagram.readUInt8(4);
 		const dataId = datagram.readUInt8(5);
-		const dataType = this.getKeyByValue(this.dataTypes, datagram.readUInt8(6));
+		const dataType = this.getKeyByValue(this.DATA_TYPES, datagram.readUInt8(6));
 		const operation = datagram.readUInt8(7);
 		const datablock = datagram.slice(8, 8 + datablockLength);
 		// Update dataObject with parsed values from the datablock
@@ -173,6 +190,9 @@ class DatagramConverter {
 	// Function to read a value of a specific type from the buffer
 	readValue(buffer, offset, type) {
 		switch (type) {
+			case 'void':
+				//void do not have value
+				return;
 			case 'boolean':
 				return buffer.readUInt8(offset) !== 0;
 			case 'int8':
@@ -213,58 +233,3 @@ class DatagramConverter {
 		return buffer;
 	}
 }
-
-// Example usage
-const converter = new DatagramConverter();
-const dataObject = {
-	class: 'ccu',
-	id: 2,
-	destination: 255,
-	operation: 255,
-	data: {
-		id: 14,
-		category_name: "Video",
-		category_id: 1,
-		category_key: "video",
-		name: "ISO",
-		key: "iso",
-		data_type: "int8",
-		index: {
-			frame_rate: {
-				name: "Frame rate",
-				key: 'frame_rate',
-				value: 24
-			},
-			m_rate: {
-				name: "M-rate",
-				key: 'm_rate',
-				value: 1
-			},
-			dimensions: {
-				name: "Dimensions",
-				key: 'dimensions',
-				value: 3
-			},
-			interlaced: {
-				name: "M-rate",
-				key: 'interlaced'
-			},
-			color_space: {
-				name: "Color space",
-				key: 'color_space'
-			}
-		},
-		minimum: 0,
-		maximum: 2147483647,
-		interpretation: "ISO value"
-	}
-};
-
-var data = converter.convertToDatagram(dataObject);
-console.log(converter.bufferToStringWithSpaces(data));
-
-var data = converter.convertToDataobject(data);
-console.log(data);
-
-var data = converter.convertToDataobject([254, 9, 0, 0, 1, 0, 1, 0, 24, 1, 3, 0, 0, 0, 0, 0]);
-console.log(data);

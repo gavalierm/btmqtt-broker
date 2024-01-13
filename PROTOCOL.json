@@ -340,6 +340,7 @@
 			"id": 14,
 			"category_name": "Video",
 			"category_id": 1,
+			"category_key": "video",
 			"name": "ISO",
 			"key": "iso",
 			"data_type": "int32",
