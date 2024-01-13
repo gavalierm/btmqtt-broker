@@ -16,14 +16,14 @@ const ccu = new CameraControlCommandService();
 
 const dataObject = {
 	class: 'ccu',
-	id: 2,
+	command: 2,
 	destination: 255,
 	operation: 255,
 	data: {
-		id: 14,
-		category_name: "Video",
 		category_id: 1,
+		category_name: "Video",
 		category_key: "video",
+		parameter_id: 14,
 		name: "ISO",
 		key: "iso",
 		data_type: "int8",
@@ -58,13 +58,13 @@ const dataObject = {
 	}
 };
 
-var data = ccu.convertToDatagram(dataObject);
-console.log(ccu.bufferToStringWithSpaces(data));
+//var data = ccu.convertToDatagram(dataObject);
+//console.log(ccu.bufferToStringWithSpaces(data));
 
-var data = ccu.convertToDataobject(data);
-console.log(data);
+//var data = ccu.convertToDataobject(data);
+//console.log(data);
 
-var data = ccu.convertToDataobject([254, 9, 0, 0, 1, 0, 1, 0, 24, 1, 3, 0, 0, 0, 0, 0]);
+var data = ccu.convertToDataobject([255, 0, 0, 0, 128, 0, 0, 0]);
 console.log(data);
 
 

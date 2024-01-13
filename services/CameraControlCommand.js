@@ -5,6 +5,9 @@ const fs = require('fs')
 //
 module.exports = class CameraControlCommand {
 	constructor() {
+		//parse protocol schema from file
+		this.PROTOCOL = JSON.parse(fs.readFileSync('./PROTOCOL.json', 'utf8'))
+
 		// Define the lengths of different types for padding calculations
 		this.TYPES_LENGHTS = {
 			void: 0,
@@ -17,7 +20,7 @@ module.exports = class CameraControlCommand {
 			fixed16: 2,
 		};
 		this.DATA_TYPES = {
-			void: 0,
+			void: -1,
 			boolean: 0,
 			int8: 1,
 			int16: 2,
@@ -27,10 +30,16 @@ module.exports = class CameraControlCommand {
 			fixed16: 128,
 		};
 
+		this.OPERATION_TYPES = {
+			assignValue: 0,
+			offsetValue: 1,
+			statusUpdate: 2
+		}
+
 		this.STRUCT = {
 			destination: 0,
 			commandLength: 1,
-			commandId: 2,
+			command: 2,
 			source: 3,
 			category: 4,
 			parameter: 5,
@@ -39,9 +48,13 @@ module.exports = class CameraControlCommand {
 			payloadStart: 8
 
 		}
+
 	}
 
 	getKeyByValue(object, value) {
+		//assert(object !== undefined, 'getKeyByValue object must be specified');
+		//assert(value !== undefined, 'getKeyByValue value must be specified');
+
 		return Object.keys(object).find(key => object[key] === value);
 	}
 
@@ -77,13 +90,19 @@ module.exports = class CameraControlCommand {
 
 		assert(dataObject !== undefined, 'dataObject must be specified');
 		assert(dataObject.destination !== undefined, 'destination must be specified');
-		assert(dataObject.operation !== undefined, 'operation must be specified');
+		//assert(dataObject.source !== undefined, 'source must be specified');
+		//assert(dataObject.command !== undefined, 'command must be specified');
+
 		assert(dataObject.data !== undefined, 'data must be specified');
-		assert(dataObject.id !== undefined, 'id must be specified');
+		//
+		assert(dataObject.data.category_id !== undefined, 'data.category_id must be specified');
+		assert(dataObject.data.parameter_id !== undefined, 'data.parameter_id must be specified');
+		//assert(dataObject.data.data_type !== undefined, 'data.data_type must be specified');
+		//assert(dataObject.data.operation_type !== undefined, 'data.operation_type must be specified');
 
 
 		const destination = dataObject.destination;
-		const operation = dataObject.operation;
+		const operationType = dataObject.operation ? dataObject.operation : 'assignValue';
 		const datablockLength = this.calculateDatablockLength(dataObject.data);
 		//console.log("len", this.calculatePadding(datablockLength));
 		const buffer = Buffer.alloc(8 + this.calculatePadding(datablockLength)); // 8 bytes for the header
@@ -92,12 +111,13 @@ module.exports = class CameraControlCommand {
 		// Write header
 		buffer.writeUInt8(destination, offset + this.STRUCT.destination);
 		buffer.writeUInt8(4 + datablockLength, offset + this.STRUCT.commandLength);
-		buffer.writeUInt8(dataObject.id, offset + this.STRUCT.commandId);
+		buffer.writeUInt8(dataObject.id, offset + this.STRUCT.command);
 		buffer.writeUInt8(0, offset + this.STRUCT.source); // Unused byte
+		//
 		buffer.writeUInt8(dataObject.data.category_id, offset + this.STRUCT.category);
 		buffer.writeUInt8(dataObject.data.id, offset + this.STRUCT.parameter);
-		buffer.writeUInt8(this.DATA_TYPES[dataObject.data.data_type], offset + this.STRUCT.operationType);
-		buffer.writeUInt8(operation, offset + this.STRUCT.payloadStart);
+		buffer.writeUInt8(this.DATA_TYPES[dataObject.data.data_type], offset + this.STRUCT.dataType);
+		buffer.writeUInt8(this.OPERATION_TYPES[operationType], offset + this.STRUCT.operationType);
 
 		// Write datablock
 		var i = 0;
@@ -108,7 +128,6 @@ module.exports = class CameraControlCommand {
 			}
 
 		}
-
 
 		return buffer;
 	}
@@ -157,34 +176,76 @@ module.exports = class CameraControlCommand {
 
 	// Function to reverse convert datagram to dataObject
 	convertToDataobject(datagram) {
+
+		assert(datagram !== undefined, 'datagram must be specified');
+
 		if (Array.isArray(datagram)) {
 			datagram = this.arrayToBuffer(datagram);
 		}
-		const destination = datagram.readUInt8(0);
-		const datablockLength = datagram.readUInt8(1);
-		const id = datagram.readUInt8(2);
-		const categoryId = datagram.readUInt8(4);
-		const dataId = datagram.readUInt8(5);
-		const dataType = this.getKeyByValue(this.DATA_TYPES, datagram.readUInt8(6));
-		const operation = datagram.readUInt8(7);
-		const datablock = datagram.slice(8, 8 + datablockLength);
-		// Update dataObject with parsed values from the datablock
-		const value = this.readValue(datablock, 0, dataType);
+
+		const offset = 0;
+
+		const destination = datagram.readUInt8(offset + this.STRUCT.destination);
+		const commandLength = datagram.readUInt8(offset + this.STRUCT.commandLength);
+		const command = datagram.readUInt8(offset + this.STRUCT.command);
+		const source = datagram.readUInt8(offset + this.STRUCT.source);
+
+		const datablock = datagram.slice(offset + this.STRUCT.payloadStart, 8 + commandLength); //befor because we need lenght
+
+		const category = datagram.readUInt8(offset + this.STRUCT.category);
+		const parameter = datagram.readUInt8(offset + this.STRUCT.parameter);
+		const dataType = this.getKeyByValue(this.DATA_TYPES, (datagram.readUInt8(offset + this.STRUCT.dataType) == 0 && datablock.length == 0) ? -1 : 0);
+		const operationType = this.getKeyByValue(this.OPERATION_TYPES, datagram.readUInt8(offset + this.STRUCT.operationType));
+
+		//we need to determine packet type by category_id and parameter_id and found protocol stcuture to merge
+		//this is first time when protocol is needed to decode message
+		var protocol_object = this.findObjectInProtocol(category, parameter);
+		//
+		if (datablock.length) {
+
+		}
 
 		const dataObject = {
 			class: 'ccu',
-			id: id,
+
 			destination: destination,
-			operation: operation,
+			commandLength: commandLength,
+			command: command,
+			source: source,
+
 			data: {
-				id: dataId,
-				category_id: categoryId,
+				category_id: category,
+				parameter_id: parameter,
 				data_type: dataType,
-				value: value,
+				operation_type: operationType,
+				//value: value
 			}
 		};
 
 		return dataObject;
+	}
+
+	findObjectInProtocol(category, parameter) {
+		//
+		//console.log(category, parameter);
+		//
+		for (const c in this.PROTOCOL.categories) {
+			if (this.PROTOCOL.categories[c]['id'] != category) {
+				continue;
+			}
+			//console.log("found");
+			for (const p in this.PROTOCOL.categories[c]['parameters']) {
+				if (this.PROTOCOL.categories[c]['parameters'][p]['id'] != parameter) {
+					continue;
+				}
+				//console.log("found");
+				return this.PROTOCOL.categories[c]['parameters'][p];
+				break;
+			}
+			break;
+		}
+		//console.log("not found");
+		return null;
 	}
 
 	// Function to read a value of a specific type from the buffer
