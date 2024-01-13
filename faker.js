@@ -10,6 +10,8 @@ const mqttClient = new MqttClientService();
 const ProtocolService = require("./services/blackmagicProtocol.js");
 const protocol = new ProtocolService();
 
+return;
+
 
 function getRandom(min, max) {
 	return Math.round(Math.random() * (max - min) + min);
@@ -26,11 +28,12 @@ mqttClient.connect();
 
 mqttClient.subscribe("btmqtt/" + mqttClient.getIdentity() + "/bt/raw/rx");
 
-
-
 var fakerInterval = setInterval(function() {
 
-		console.log(protocol.getProtocol());
+		console.log(protocol.to_fixed16('0xfd9a'));
+
+		var data = { type: 'ccu', destination: 255, operation: 0, data: { video: { iso: { value: 400 } } } };
+		console.log(protocol.jsonToPayload(data));
 		return;
 
 		var _group = protocol['groups'][getRandom(1, protocol['groups'].length - 1)];
@@ -41,4 +44,4 @@ var fakerInterval = setInterval(function() {
 
 		mqttClient.publish("btmqtt/" + mqttClient.getIdentity() + "/bt/raw/tx", JSON.stringify(cmd));
 	},
-	10000);
+	1000);
