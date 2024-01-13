@@ -1,9 +1,9 @@
 {
-	"custom_structure_type":
+	"disclaimer": "This is auto generated PROTOCOL. Data have to be revised manually. Based on https://documents.blackmagicdesign.com/DeveloperManuals/BlackmagicCameraControl.pdf",
+	"unofficial_custom_groups":
 	{
-		"ccu": 1,
-		"tally": 2,
-		"bt": 3
+		"rgb_tally": "See group 128",
+		"bluetooth": "See group 129"
 	},
 	"structure":
 	{
@@ -613,7 +613,7 @@
 			"index": [],
 			"minimum": 0,
 			"maximum": 1,
-			"interpretation": "Sets the tally front and tally rear brightness to the same level.\n0.0 = minimum,\n1.0 = maximum"
+			"interpretation": "Sets the tally front and tally rear brightness to the same level. 0.0 = minimum, 1.0 = maximum"
 		},
 		{
 			"id": 1,
@@ -1039,39 +1039,79 @@
 		}]
 	},
 	{
-		"name": "Bluetooth",
-		"key": "bluetooth",
+		"name": "RGB Tally",
+		"key": "rgb_tally",
 		"id": 128,
 		"parameters": [
 		{
 			"id": 0,
-			"category_name": "Bluetooth",
+			"category_name": "RGB Tally",
 			"category_id": 128,
+			"name": "PGM",
+			"key": "pgm",
+			"data_type": "int8",
+			"index": ["Off", "Pgm", "Pvw"],
+			"minium": 0,
+			"maximum": 2,
+			"interpretation": "Custom: 0 = off, 1 = pgm, 2 = pvw"
+		},
+		{
+			"id": 1,
+			"category_name": "RGB Tally",
+			"category_id": 128,
+			"name": "Set tally color",
+			"key": "set_tally_color",
+			"data_type": "int8",
+			"index": ["Red", "Green", "Blue", "Luma"],
+			"minium": 0,
+			"maximum": 255,
+			"interpretation": "Custom: Set RGB color to tally RR GG BB YY"
+		}]
+	},
+	{
+		"name": "Bluetooth",
+		"key": "bluetooth",
+		"id": 129,
+		"parameters": [
+		{
+			"id": 0,
+			"category_name": "Bluetooth",
+			"category_id": 129,
 			"name": "Disconnect",
 			"key": "disconnect",
 			"data_type": "void",
 			"index": [],
-			"interpretation": "0 = disconnect"
+			"interpretation": "Custom: Disconnect from camera"
 		},
 		{
-			"id": 0,
+			"id": 1,
 			"category_name": "Bluetooth",
-			"category_id": 128,
+			"category_id": 129,
 			"name": "Connect",
 			"key": "connect",
 			"data_type": "int8",
 			"index": [],
-			"interpretation": "Connect to MAC address"
+			"interpretation": "Custom: Connect to camera MAC address"
 		},
 		{
 			"id": 2,
 			"category_name": "Bluetooth",
-			"category_id": 128,
+			"category_id": 129,
+			"name": "Passcode",
+			"key": "passcode",
+			"data_type": "void",
+			"index": [],
+			"interpretation": "Custom: Passcode notify"
+		},
+		{
+			"id": 4,
+			"category_name": "Bluetooth",
+			"category_id": 129,
 			"name": "Passcode",
 			"key": "passcode",
 			"data_type": "int32",
 			"index": [],
-			"interpretation": "Custom: sending passcode back to the camera"
+			"interpretation": "Custom: Exchange passcode 6-digid"
 		}]
 	}],
 	"bluetooth_services": [

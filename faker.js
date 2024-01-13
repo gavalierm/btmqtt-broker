@@ -14,6 +14,8 @@ const protocol = new ProtocolService();
 const CameraControlCommandService = require("./services/CameraControlCommand.js");
 const ccu = new CameraControlCommandService();
 
+ccu.regenerateProtocolFile();
+return;
 const dataObject = {
 	class: 'ccu',
 	command: 2,
@@ -64,7 +66,7 @@ const dataObject = {
 //var data = ccu.convertToDataobject(data);
 //console.log(data);
 
-var data = ccu.convertToDataobject([255, 0, 0, 0, 128, 0, 0, 0]);
+var data = ccu.convertToDataobject([255, 0, 0, 0, 128, 2, 0, 0]);
 console.log(data);
 
 

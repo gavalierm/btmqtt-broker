@@ -6,7 +6,8 @@ const fs = require('fs')
 module.exports = class CameraControlCommand {
 	constructor() {
 		//parse protocol schema from file
-		this.PROTOCOL = JSON.parse(fs.readFileSync('./PROTOCOL.json', 'utf8'))
+		this.PATH = './PROTOCOL.json';
+		this.PROTOCOL = JSON.parse(fs.readFileSync(this.PATH, 'utf8'))
 
 		// Define the lengths of different types for padding calculations
 		this.TYPES_LENGHTS = {
@@ -197,15 +198,12 @@ module.exports = class CameraControlCommand {
 		const dataType = this.getKeyByValue(this.DATA_TYPES, (datagram.readUInt8(offset + this.STRUCT.dataType) == 0 && datablock.length == 0) ? -1 : 0);
 		const operationType = this.getKeyByValue(this.OPERATION_TYPES, datagram.readUInt8(offset + this.STRUCT.operationType));
 
-		//we need to determine packet type by category_id and parameter_id and found protocol stcuture to merge
-		//this is first time when protocol is needed to decode message
-		var protocol_object = this.findObjectInProtocol(category, parameter);
-		//
-		if (datablock.length) {
 
+		if (datablock.length) {
+			//todo
 		}
 
-		const dataObject = {
+		var dataObject = {
 			class: 'ccu',
 
 			destination: destination,
@@ -221,6 +219,16 @@ module.exports = class CameraControlCommand {
 				//value: value
 			}
 		};
+
+		//we need to determine packet type by category_id and parameter_id and found protocol stcuture to merge
+		//this is first time when protocol is needed to decode message
+		var protocol_object = this.findObjectInProtocol(category, parameter);
+		//
+
+		dataObject.data = {
+			...protocol_object,
+			...dataObject.data
+		}
 
 		return dataObject;
 	}
@@ -292,5 +300,75 @@ module.exports = class CameraControlCommand {
 	arrayToBuffer(hexArray) {
 		const buffer = Buffer.from(hexArray);
 		return buffer;
+	}
+
+	regenerateProtocolFile() {
+
+		var categories = {};
+		for (var c = 0; c < this.PROTOCOL['categories'].length; c++) {
+			//
+			var category = this.PROTOCOL['categories'][c];
+			//
+
+			var parameters = {};
+			for (var p = 0; p < category['parameters'].length; p++) {
+				//
+				var parameter = {
+					group_id: category.id,
+					group_name: category.name,
+					group_key: category.key,
+					id: category['parameters'][p].id,
+					name: category['parameters'][p].name,
+					key: category['parameters'][p].key,
+					data_type: category['parameters'][p].data_type,
+					interpretation: category['parameters'][p].interpretation ? category['parameters'][p].interpretation : ''
+				}
+				//
+				var datas = {};
+				if (category['parameters'][p]['index'].length == 0 && category['parameters'][p].data_type !== 'void') {
+					category['parameters'][p]['index'] = ["Default"];
+				}
+				if (category['parameters'][p]['index'].length == 0 && category['parameters'][p].data_type == 'boolean') {
+					category['parameters'][p]['index'] = ["Default"];
+					category['parameters'][p]['minimum'] = 0;
+					category['parameters'][p]['maximum'] = 1;
+				}
+				for (var i = 0; i < category['parameters'][p]['index'].length; i++) {
+					//
+					var index = {
+						name: category['parameters'][p]['index'][i],
+						key: this.slugify(category['parameters'][p]['index'][i]),
+						min: category['parameters'][p]['minimum'],
+						max: category['parameters'][p]['maximum'],
+						value: null
+					};
+					//console.log(index);
+					//
+					datas[this.slugify(category['parameters'][p]['index'][i])] = index;
+				}
+				//console.log(datas);
+				parameter['data'] = datas;
+				console.log(parameter);
+				parameters[parameter.key] = parameter;
+			}
+			category['parameters'] = parameters;
+			categories[category.key] = category;
+		}
+
+		this.PROTOCOL['groups'] = categories;
+		delete this.PROTOCOL['categories'];
+
+		fs.writeFileSync('./PROTOCOL_v2.json', JSON.stringify(this.PROTOCOL), { encoding: "utf8" });
+		console.log(this.PROTOCOL['groups']);
+	}
+
+	slugify(str) {
+		const delimiter = '_';
+		str = str.replace(/^\s+|\s+$/g, ''); // trim leading/trailing white space
+		str = str.toLowerCase(); // convert string to lowercase
+		str = str.replace(/[^a-z0-9 -]/g, '') // remove any non-alphanumeric characters
+			.replace(/\s+/g, delimiter) // replace spaces with hyphens
+			.replace(/-+/g, delimiter); // remove consecutive hyphens
+		return str;
 	}
 }
