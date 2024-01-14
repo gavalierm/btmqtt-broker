@@ -130,7 +130,7 @@
 					"key": "focus",
 					"data_type": "fixed16",
 					"interpretation": "0.0 = near, 1.0 = far",
-					"data":
+					"props":
 					{
 						"default":
 						{
@@ -152,7 +152,7 @@
 					"key": "instantaneous_autofocus",
 					"data_type": "void",
 					"interpretation": "trigger instantaneous autofocus",
-					"data":
+					"props":
 					{}
 				},
 				"aperture_f_stop":
@@ -165,7 +165,7 @@
 					"key": "aperture_f_stop",
 					"data_type": "fixed16",
 					"interpretation": "Aperture Value (where fnumber\n= sqrt(2^AV))",
-					"data":
+					"props":
 					{
 						"default":
 						{
@@ -187,7 +187,7 @@
 					"key": "aperture_normalised",
 					"data_type": "fixed16",
 					"interpretation": "0.0 = smallest, 1.0 = largest",
-					"data":
+					"props":
 					{
 						"default":
 						{
@@ -209,7 +209,7 @@
 					"key": "aperture_ordinal",
 					"data_type": "int16",
 					"interpretation": "Steps through available aperture values from minimum (0) to maximum (n)",
-					"data":
+					"props":
 					{
 						"default":
 						{
@@ -231,7 +231,7 @@
 					"key": "instantaneous_auto_aperture",
 					"data_type": "void",
 					"interpretation": "trigger instantaneous auto aperture",
-					"data":
+					"props":
 					{}
 				},
 				"optical_image_stabilisation":
@@ -244,7 +244,7 @@
 					"key": "optical_image_stabilisation",
 					"data_type": "boolean",
 					"interpretation": "true = enabled, false = disabled",
-					"data":
+					"props":
 					{
 						"default":
 						{
@@ -264,7 +264,7 @@
 					"key": "set_absolute_zoom_mm",
 					"data_type": "int16",
 					"interpretation": "Move to specified focal length in mm, from minimum (0) to maximum (max)",
-					"data":
+					"props":
 					{
 						"default":
 						{
@@ -286,7 +286,7 @@
 					"key": "set_absolute_zoom_normalised",
 					"data_type": "fixed16",
 					"interpretation": "Move to specified focal length:\n0.0 = wide, 1.0 = tele",
-					"data":
+					"props":
 					{
 						"default":
 						{
@@ -308,7 +308,7 @@
 					"key": "set_continuous_zoom_speed",
 					"data_type": "fixed16",
 					"interpretation": "Start/stop zooming at specified rate: -1.0 = zoom wider fast, 0.0\n= stop,\n+1 = zoom tele fast",
-					"data":
+					"props":
 					{
 						"default":
 						{
@@ -339,7 +339,7 @@
 					"key": "video_mode",
 					"data_type": "int8",
 					"interpretation": "0 = YUV",
-					"data":
+					"props":
 					{
 						"frame_rate":
 						{
@@ -383,7 +383,7 @@
 					"key": "gain_up_to_camera_4_9",
 					"data_type": "int8",
 					"interpretation": "1x, 2x, 4x, 8x, 16x, 32x, 64x, 128x\ngain",
-					"data":
+					"props":
 					{
 						"default":
 						{
@@ -405,7 +405,7 @@
 					"key": "manual_white_balance",
 					"data_type": "int16",
 					"interpretation": "tint",
-					"data":
+					"props":
 					{
 						"color_temp":
 						{
@@ -435,7 +435,7 @@
 					"key": "set_auto_wb",
 					"data_type": "void",
 					"interpretation": "Calculate and set auto white balance",
-					"data":
+					"props":
 					{}
 				},
 				"restore_auto_wb":
@@ -448,7 +448,7 @@
 					"key": "restore_auto_wb",
 					"data_type": "void",
 					"interpretation": "Use latest auto white balance setting",
-					"data":
+					"props":
 					{}
 				},
 				"exposure_us":
@@ -461,7 +461,7 @@
 					"key": "exposure_us",
 					"data_type": "int32",
 					"interpretation": "time in us",
-					"data":
+					"props":
 					{
 						"default":
 						{
@@ -483,7 +483,7 @@
 					"key": "exposure_ordinal",
 					"data_type": "int16",
 					"interpretation": "Steps through available exposure values from minimum\n(0) to maximum (n)",
-					"data":
+					"props":
 					{
 						"default":
 						{
@@ -505,7 +505,7 @@
 					"key": "dynamic_range_mode",
 					"data_type": "int8",
 					"interpretation": "0 = film, 1 = video,  2 = extended video",
-					"data":
+					"props":
 					{
 						"default":
 						{
@@ -527,7 +527,7 @@
 					"key": "video_sharpening_level",
 					"data_type": "int8",
 					"interpretation": "0 = off, 1 = low, 2 = medium,\n3 = high",
-					"data":
+					"props":
 					{
 						"default":
 						{
@@ -549,7 +549,7 @@
 					"key": "recording_format",
 					"data_type": "int16",
 					"interpretation": "[4] = windowed mode",
-					"data":
+					"props":
 					{
 						"file_frame_rate":
 						{
@@ -593,7 +593,7 @@
 					"key": "set_auto_exposure_mode",
 					"data_type": "int8",
 					"interpretation": "0 = Manual Trigger, 1 = Iris,\n2 = Shutter, 3 = Iris + Shutter, 4 = Shutter + Iris",
-					"data":
+					"props":
 					{
 						"default":
 						{
@@ -615,7 +615,7 @@
 					"key": "shutter_angle",
 					"data_type": "int32",
 					"interpretation": "Shutter angle in degrees, multiplied by 100",
-					"data":
+					"props":
 					{
 						"default":
 						{
@@ -637,7 +637,7 @@
 					"key": "shutter_speed",
 					"data_type": "int32",
 					"interpretation": "Shutter speed value as a fraction of 1, so 50 for 1/50th of a second",
-					"data":
+					"props":
 					{
 						"default":
 						{
@@ -659,7 +659,7 @@
 					"key": "gain",
 					"data_type": "int8",
 					"interpretation": "Gain in decibel (dB)",
-					"data":
+					"props":
 					{
 						"default":
 						{
@@ -681,7 +681,7 @@
 					"key": "iso",
 					"data_type": "int32",
 					"interpretation": "ISO value",
-					"data":
+					"props":
 					{
 						"default":
 						{
@@ -703,7 +703,7 @@
 					"key": "display_lut",
 					"data_type": "int8",
 					"interpretation": "0 = Not enabled, 1 = Enabled",
-					"data":
+					"props":
 					{
 						"selected_lut":
 						{
@@ -729,7 +729,7 @@
 					"key": "nd_filter",
 					"data_type": "fixed16",
 					"interpretation": "f-stop of ND filter to use",
-					"data":
+					"props":
 					{
 						"stops":
 						{
@@ -760,7 +760,7 @@
 					"key": "mic_level",
 					"data_type": "fixed16",
 					"interpretation": "0.0 = minimum, 1.0 = maximum",
-					"data":
+					"props":
 					{
 						"default":
 						{
@@ -782,7 +782,7 @@
 					"key": "headphone_level",
 					"data_type": "fixed16",
 					"interpretation": "0.0 = minimum, 1.0 = maximum",
-					"data":
+					"props":
 					{
 						"default":
 						{
@@ -804,7 +804,7 @@
 					"key": "headphone_program_mix",
 					"data_type": "fixed16",
 					"interpretation": "0.0 = minimum, 1.0 = maximum",
-					"data":
+					"props":
 					{
 						"default":
 						{
@@ -826,7 +826,7 @@
 					"key": "speaker_level",
 					"data_type": "fixed16",
 					"interpretation": "0.0 = minimum, 1.0 = maximum",
-					"data":
+					"props":
 					{
 						"default":
 						{
@@ -848,7 +848,7 @@
 					"key": "input_type",
 					"data_type": "int8",
 					"interpretation": "0 = internal mic,\n1 = line level input,\n2 = low mic level input, 3 = high mic level input",
-					"data":
+					"props":
 					{
 						"default":
 						{
@@ -870,7 +870,7 @@
 					"key": "input_levels",
 					"data_type": "fixed16",
 					"interpretation": "0.0 = minimum, 1.0 = maximum",
-					"data":
+					"props":
 					{
 						"ch0":
 						{
@@ -900,7 +900,7 @@
 					"key": "phantom_power",
 					"data_type": "boolean",
 					"interpretation": "true = powered, false = not powered",
-					"data":
+					"props":
 					{
 						"default":
 						{
@@ -929,7 +929,7 @@
 					"key": "overlay_enables",
 					"data_type": "uint16_bit_field",
 					"interpretation": "bit flags:\n[0] = display status,\n[1] = display frame guides\nSome cameras don't allow separate control of frame guides and status overlays.",
-					"data":
+					"props":
 					{
 						"default":
 						{
@@ -949,7 +949,7 @@
 					"key": "frame_guides_style_camera_3_x",
 					"data_type": "int8",
 					"interpretation": "0 = HDTV, 1 = 4:3, 2 = 2.4:1,\n3 = 2.39:1, 4 = 2.35:1,\n5 = 1.85:1, 6 = thirds",
-					"data":
+					"props":
 					{
 						"default":
 						{
@@ -971,7 +971,7 @@
 					"key": "frame_guides_opacity_camera_3_x",
 					"data_type": "fixed16",
 					"interpretation": "0.0 = transparent, 1.0 = opaque",
-					"data":
+					"props":
 					{
 						"default":
 						{
@@ -993,7 +993,7 @@
 					"key": "overlays_replaces_1_and_2_above_from_cameras_4_0",
 					"data_type": "int8",
 					"interpretation": "bit flags:\n[0] = display thirds,\n[1] = display cross hairs,\n[2] = display center dot,\n[3] = display horizon",
-					"data":
+					"props":
 					{
 						"frame_guides_style":
 						{
@@ -1048,7 +1048,7 @@
 					"key": "brightness",
 					"data_type": "fixed16",
 					"interpretation": "0.0 = minimum, 1.0 = maximum",
-					"data":
+					"props":
 					{
 						"default":
 						{
@@ -1070,7 +1070,7 @@
 					"key": "exposure_and_focus_tools",
 					"data_type": "int16_bit_field",
 					"interpretation": "0 = disable, 1 = enable",
-					"data":
+					"props":
 					{
 						"0x1_zebra0x2_focus_assist_0x4_false_color":
 						{
@@ -1090,7 +1090,7 @@
 					"key": "zebra_level",
 					"data_type": "fixed16",
 					"interpretation": "0.0 = minimum, 1.0 = maximum",
-					"data":
+					"props":
 					{
 						"default":
 						{
@@ -1112,7 +1112,7 @@
 					"key": "peaking_level",
 					"data_type": "fixed16",
 					"interpretation": "0.0 = minimum, 1.0 = maximum",
-					"data":
+					"props":
 					{
 						"default":
 						{
@@ -1134,7 +1134,7 @@
 					"key": "color_bar_enable",
 					"data_type": "int8",
 					"interpretation": "0 = disable bars,\n1-30 = enable bars with timeout (seconds)",
-					"data":
+					"props":
 					{
 						"default":
 						{
@@ -1156,7 +1156,7 @@
 					"key": "focus_assist",
 					"data_type": "int8",
 					"interpretation": "0 = Red,\n1 = Green,\n2 = Blue,\n3 = White,\n4 = Black",
-					"data":
+					"props":
 					{
 						"focus_assist_method":
 						{
@@ -1182,7 +1182,7 @@
 					"key": "program_return_feed_enable",
 					"data_type": "int8",
 					"interpretation": "0 = disable, 1-30 = enable with timeout (seconds)",
-					"data":
+					"props":
 					{
 						"default":
 						{
@@ -1213,7 +1213,7 @@
 					"key": "tally_brightness",
 					"data_type": "fixed16",
 					"interpretation": "Sets the tally front and tally rear brightness to the same level. 0.0 = minimum, 1.0 = maximum",
-					"data":
+					"props":
 					{
 						"default":
 						{
@@ -1235,7 +1235,7 @@
 					"key": "front_tally_brightness",
 					"data_type": "fixed16",
 					"interpretation": "Sets the tally front brightness.\n0.0 = minimum,\n1.0 = maximum",
-					"data":
+					"props":
 					{
 						"default":
 						{
@@ -1257,7 +1257,7 @@
 					"key": "rear_tally_brightness",
 					"data_type": "fixed16",
 					"interpretation": "Sets the tally rear brightness.\n0.0 = minimum,\n1.0 = maximum\nTally rear brightness cannot be turned off",
-					"data":
+					"props":
 					{
 						"default":
 						{
@@ -1288,7 +1288,7 @@
 					"key": "source",
 					"data_type": "int8",
 					"interpretation": "0 = internal,\n1 = program,\n2 = external",
-					"data":
+					"props":
 					{
 						"default":
 						{
@@ -1310,7 +1310,7 @@
 					"key": "offset",
 					"data_type": "int32",
 					"interpretation": "+/- offset in pixels",
-					"data":
+					"props":
 					{
 						"default":
 						{
@@ -1339,7 +1339,7 @@
 					"key": "real_time_clock",
 					"data_type": "int32",
 					"interpretation": "BCD - YYYYMMDD",
-					"data":
+					"props":
 					{
 						"time":
 						{
@@ -1365,7 +1365,7 @@
 					"key": "system_language",
 					"data_type": "string",
 					"interpretation": "ISO-639-1 two character language code",
-					"data":
+					"props":
 					{
 						"0_1":
 						{
@@ -1385,7 +1385,7 @@
 					"key": "timezone",
 					"data_type": "int32",
 					"interpretation": "Minutes offset from UTC",
-					"data":
+					"props":
 					{
 						"default":
 						{
@@ -1405,7 +1405,7 @@
 					"key": "location",
 					"data_type": "int64",
 					"interpretation": "BCD - sDDDdddddddddddd where s is the sign: 0 = west (-), 1 = east (+); DDD degrees, dddddddddddd decimal degrees",
-					"data":
+					"props":
 					{
 						"latitude":
 						{
@@ -1440,7 +1440,7 @@
 					"key": "lift_adjust",
 					"data_type": "fixed16",
 					"interpretation": "default 0.0",
-					"data":
+					"props":
 					{
 						"red":
 						{
@@ -1486,7 +1486,7 @@
 					"key": "gamma_adjust",
 					"data_type": "fixed16",
 					"interpretation": "default 0.0",
-					"data":
+					"props":
 					{
 						"red":
 						{
@@ -1532,7 +1532,7 @@
 					"key": "gain_adjust",
 					"data_type": "fixed16",
 					"interpretation": "default 1.0",
-					"data":
+					"props":
 					{
 						"red":
 						{
@@ -1578,7 +1578,7 @@
 					"key": "offset_adjust",
 					"data_type": "fixed16",
 					"interpretation": "default 0.0",
-					"data":
+					"props":
 					{
 						"red":
 						{
@@ -1624,7 +1624,7 @@
 					"key": "contrast_adjust",
 					"data_type": "fixed16",
 					"interpretation": "default 1.0",
-					"data":
+					"props":
 					{
 						"pivot":
 						{
@@ -1654,7 +1654,7 @@
 					"key": "luma_mix",
 					"data_type": "fixed16",
 					"interpretation": "default 1.0",
-					"data":
+					"props":
 					{
 						"default":
 						{
@@ -1676,7 +1676,7 @@
 					"key": "color_adjust",
 					"data_type": "fixed16",
 					"interpretation": "default 1.0",
-					"data":
+					"props":
 					{
 						"hue":
 						{
@@ -1706,7 +1706,7 @@
 					"key": "correction_reset_default",
 					"data_type": "void",
 					"interpretation": "reset to defaults",
-					"data":
+					"props":
 					{}
 				}
 			}
@@ -1728,7 +1728,7 @@
 					"key": "codec",
 					"data_type": "int8",
 					"interpretation": "Blackmagic RAW: 0 = Q0,\n1 = Q5,\n2 = 3:1,\n3 = 5:1,\n4 = 8:1,\n5 = 12:1",
-					"data":
+					"props":
 					{
 						"basic_codec":
 						{
@@ -1754,7 +1754,7 @@
 					"key": "transport_mode",
 					"data_type": "int8",
 					"interpretation": "0 = CFast card, 1 = SD Card,\n2 = SSD Recorder,\n3 = USB",
-					"data":
+					"props":
 					{
 						"mode":
 						{
@@ -1798,7 +1798,7 @@
 					"key": "playback_control",
 					"data_type": "int8",
 					"interpretation": "0 = Previous,\n1 = Next",
-					"data":
+					"props":
 					{
 						"clip":
 						{
@@ -1818,7 +1818,7 @@
 					"key": "still_capture",
 					"data_type": "void",
 					"interpretation": "Capture",
-					"data":
+					"props":
 					{}
 				}
 			}
@@ -1840,7 +1840,7 @@
 					"key": "pan_tilt_velocity",
 					"data_type": "fixed16",
 					"interpretation": "-1.0 = full speed down,\n1.0 = full speed up",
-					"data":
+					"props":
 					{
 						"pan_velocity":
 						{
@@ -1870,7 +1870,7 @@
 					"key": "memory_preset",
 					"data_type": "int8",
 					"interpretation": "0 = reset,\n1 = store location, 2 = recall location",
-					"data":
+					"props":
 					{
 						"preset_command":
 						{
@@ -1909,7 +1909,7 @@
 					"key": "reel",
 					"data_type": "int16",
 					"interpretation": "",
-					"data":
+					"props":
 					{
 						"reel":
 						{
@@ -1931,7 +1931,7 @@
 					"key": "scene_tags",
 					"data_type": "int8",
 					"interpretation": "0 = Night\n1 = Day",
-					"data":
+					"props":
 					{
 						"scene_tags":
 						{
@@ -1963,7 +1963,7 @@
 					"key": "scene",
 					"data_type": "string",
 					"interpretation": "",
-					"data":
+					"props":
 					{
 						"0_4_scene":
 						{
@@ -1983,7 +1983,7 @@
 					"key": "take",
 					"data_type": "int8",
 					"interpretation": "1 = None\n0 = PU\n1 = VFX\n2 = SER",
-					"data":
+					"props":
 					{
 						"take_number":
 						{
@@ -2013,7 +2013,7 @@
 					"key": "good_take",
 					"data_type": "void",
 					"interpretation": "",
-					"data":
+					"props":
 					{
 						"good_take":
 						{
@@ -2033,7 +2033,7 @@
 					"key": "camera_id",
 					"data_type": "string",
 					"interpretation": "",
-					"data":
+					"props":
 					{
 						"0_28_id":
 						{
@@ -2053,7 +2053,7 @@
 					"key": "camera_operator",
 					"data_type": "string",
 					"interpretation": "",
-					"data":
+					"props":
 					{
 						"0_28_operator":
 						{
@@ -2073,7 +2073,7 @@
 					"key": "director",
 					"data_type": "string",
 					"interpretation": "",
-					"data":
+					"props":
 					{
 						"0_27_director":
 						{
@@ -2093,7 +2093,7 @@
 					"key": "project_name",
 					"data_type": "string",
 					"interpretation": "",
-					"data":
+					"props":
 					{
 						"0_28_project":
 						{
@@ -2113,7 +2113,7 @@
 					"key": "lens_type",
 					"data_type": "string",
 					"interpretation": "",
-					"data":
+					"props":
 					{
 						"0_55_type":
 						{
@@ -2133,7 +2133,7 @@
 					"key": "lens_iris",
 					"data_type": "string",
 					"interpretation": "",
-					"data":
+					"props":
 					{
 						"0_19_iris":
 						{
@@ -2153,7 +2153,7 @@
 					"key": "lens_focal_length",
 					"data_type": "string",
 					"interpretation": "",
-					"data":
+					"props":
 					{
 						"0_29_focal_length":
 						{
@@ -2173,7 +2173,7 @@
 					"key": "lens_distance",
 					"data_type": "string",
 					"interpretation": "",
-					"data":
+					"props":
 					{
 						"0_49_distance":
 						{
@@ -2193,7 +2193,7 @@
 					"key": "lens_filter",
 					"data_type": "string",
 					"interpretation": "",
-					"data":
+					"props":
 					{
 						"0_29_filter":
 						{
@@ -2213,7 +2213,7 @@
 					"key": "slate_mode",
 					"data_type": "int8",
 					"interpretation": "0 = Recording\n1 = Playback",
-					"data":
+					"props":
 					{
 						"type":
 						{
@@ -2242,7 +2242,7 @@
 					"key": "pgm",
 					"data_type": "int8",
 					"interpretation": "Custom: 0 = off, 1 = pgm, 2 = pvw",
-					"data":
+					"props":
 					{
 						"off":
 						{
@@ -2277,7 +2277,7 @@
 					"key": "set_tally_color",
 					"data_type": "int8",
 					"interpretation": "Custom: Set RGB color to tally RR GG BB YY",
-					"data":
+					"props":
 					{
 						"red":
 						{
@@ -2328,7 +2328,7 @@
 					"key": "disconnect",
 					"data_type": "void",
 					"interpretation": "Custom: Disconnect from camera",
-					"data":
+					"props":
 					{}
 				},
 				"connect":
@@ -2341,7 +2341,7 @@
 					"key": "connect",
 					"data_type": "int8",
 					"interpretation": "Custom: Connect to camera MAC address",
-					"data":
+					"props":
 					{
 						"default":
 						{
@@ -2361,7 +2361,7 @@
 					"key": "passcode",
 					"data_type": "int32",
 					"interpretation": "Custom: Exchange passcode 6-digid",
-					"data":
+					"props":
 					{
 						"default":
 						{

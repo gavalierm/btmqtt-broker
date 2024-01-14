@@ -3,10 +3,10 @@ const assert = require('assert');
 require('console');
 const fs = require('fs')
 //
-module.exports = class CameraControlCommand {
+module.exports = class CameraControlProtocol {
 	constructor() {
 		//parse protocol schema from file
-		this.PATH = './PROTOCOL.json';
+		this.PATH = './PROTOCOL_v2.json';
 		this.PROTOCOL = JSON.parse(fs.readFileSync(this.PATH, 'utf8'))
 
 		// Define the lengths of different types for padding calculations
@@ -21,7 +21,7 @@ module.exports = class CameraControlCommand {
 			fixed16: 2,
 		};
 		this.DATA_TYPES = {
-			void: -1,
+			void: -1, //have to be same as boolean: 0, but we fix this futher in code
 			boolean: 0,
 			int8: 1,
 			int16: 2,
@@ -52,6 +52,10 @@ module.exports = class CameraControlCommand {
 
 	}
 
+	getProtocol() {
+		return this.PROTOCOL;
+	}
+
 	getKeyByValue(object, value) {
 		//assert(object !== undefined, 'getKeyByValue object must be specified');
 		//assert(value !== undefined, 'getKeyByValue value must be specified');
@@ -72,16 +76,21 @@ module.exports = class CameraControlCommand {
 	// Function to calculate the length of the datablock after conversion
 	calculateDatablockLength(dataBlock) {
 		let length = 0;
-
-		if (dataBlock.hasOwnProperty('index') && dataBlock.index !== undefined) {
-			for (const k in dataBlock.index) {
+		if (dataBlock.hasOwnProperty('props') && dataBlock.props !== undefined && Object.keys(dataBlock.props).length !== 0) {
+			console.log("Inside Proprs", dataBlock.props);
+			for (const k in dataBlock.props) {
+				if (dataBlock.props[k].value == undefined || dataBlock.props[k].value == null) {
+					continue
+				}
 				if (dataBlock.data_type === 'string') {
 					// For strings, add the length of the string and the null terminator
-					length += Buffer.from(dataBlock.index[k].value, 'utf-8').length + 1;
+					length += Buffer.from(dataBlock.props[k].value, 'utf-8').length + 1;
 				} else {
 					length += this.TYPES_LENGHTS[dataBlock.data_type];
 				}
 			}
+		} else {
+			console.log("Outside Proprs", dataBlock.props);
 		}
 		return length; //because padding is not counted
 	}
@@ -90,20 +99,21 @@ module.exports = class CameraControlCommand {
 	convertToDatagram(dataObject) {
 
 		assert(dataObject !== undefined, 'dataObject must be specified');
-		assert(dataObject.destination !== undefined, 'destination must be specified');
+		//assert(dataObject.destination !== undefined, 'destination must be specified');
 		//assert(dataObject.source !== undefined, 'source must be specified');
 		//assert(dataObject.command !== undefined, 'command must be specified');
 
 		assert(dataObject.data !== undefined, 'data must be specified');
 		//
-		assert(dataObject.data.category_id !== undefined, 'data.category_id must be specified');
-		assert(dataObject.data.parameter_id !== undefined, 'data.parameter_id must be specified');
+		assert(dataObject.data.group_id !== undefined, 'data.group_id must be specified');
+		assert(dataObject.data.id !== undefined, 'data.id must be specified');
 		//assert(dataObject.data.data_type !== undefined, 'data.data_type must be specified');
 		//assert(dataObject.data.operation_type !== undefined, 'data.operation_type must be specified');
 
 
-		const destination = dataObject.destination;
+		const destination = dataObject.destination ? dataObject.destination : 255;
 		const operationType = dataObject.operation ? dataObject.operation : 'assignValue';
+		console.log("Props", dataObject.data.props);
 		const datablockLength = this.calculateDatablockLength(dataObject.data);
 		//console.log("len", this.calculatePadding(datablockLength));
 		const buffer = Buffer.alloc(8 + this.calculatePadding(datablockLength)); // 8 bytes for the header
@@ -115,20 +125,23 @@ module.exports = class CameraControlCommand {
 		buffer.writeUInt8(dataObject.id, offset + this.STRUCT.command);
 		buffer.writeUInt8(0, offset + this.STRUCT.source); // Unused byte
 		//
-		buffer.writeUInt8(dataObject.data.category_id, offset + this.STRUCT.category);
+		buffer.writeUInt8(dataObject.data.group_id, offset + this.STRUCT.category);
 		buffer.writeUInt8(dataObject.data.id, offset + this.STRUCT.parameter);
-		buffer.writeUInt8(this.DATA_TYPES[dataObject.data.data_type], offset + this.STRUCT.dataType);
+		buffer.writeUInt8((this.DATA_TYPES[dataObject.data.data_type] < 0) ? 0 : this.DATA_TYPES[dataObject.data.data_type], offset + this.STRUCT.dataType); //void interpreted as 0 not -1 which is out of range
 		buffer.writeUInt8(this.OPERATION_TYPES[operationType], offset + this.STRUCT.operationType);
 
 		// Write datablock
-		var i = 0;
-		for (const k in dataObject.data.index) {
-			if (dataObject.data.index[k].hasOwnProperty('value') && dataObject.data.index[k].value !== undefined) {
-				this.writeDatablock(buffer, dataObject.data.data_type, dataObject.data.index[k].value, offset + this.STRUCT.payloadStart + i);
+		if (dataObject.data.props !== undefined && Object.keys(dataObject.data.props).length !== 0) {
+			var i = 0;
+			for (const k in dataObject.data.props) {
+				if (!dataObject.data.props[k].hasOwnProperty('value') || dataObject.data.props[k].value == undefined || dataObject.data.props[k].value == null) {
+					continue;
+				}
+				this.writeDatablock(buffer, dataObject.data.data_type, dataObject.data.props[k].value, offset + this.STRUCT.payloadStart + i);
 				i++;
 			}
-
 		}
+
 
 		return buffer;
 	}
@@ -140,6 +153,7 @@ module.exports = class CameraControlCommand {
 		switch (type) {
 			case 'void':
 				//void do not have value
+				console.log("Void");
 				break;
 			case 'boolean':
 				buffer.writeUInt8(value ? 1 : 0, offset);
@@ -212,15 +226,15 @@ module.exports = class CameraControlCommand {
 			source: source,
 
 			data: {
-				category_id: category,
-				parameter_id: parameter,
+				group_id: category,
+				id: parameter,
 				data_type: dataType,
 				operation_type: operationType,
 				//value: value
 			}
 		};
 
-		//we need to determine packet type by category_id and parameter_id and found protocol stcuture to merge
+		//we need to determine packet type by group_id and id and found protocol stcuture to merge
 		//this is first time when protocol is needed to decode message
 		var protocol_object = this.findObjectInProtocol(category, parameter);
 		//
@@ -303,11 +317,11 @@ module.exports = class CameraControlCommand {
 	}
 
 	regenerateProtocolFile() {
-
+		var protocol = JSON.parse(fs.readFileSync(this.PATH, 'utf8'))
 		var categories = {};
-		for (var c = 0; c < this.PROTOCOL['categories'].length; c++) {
+		for (var c = 0; c < protocol['categories'].length; c++) {
 			//
-			var category = this.PROTOCOL['categories'][c];
+			var category = protocol['categories'][c];
 			//
 
 			var parameters = {};
@@ -355,11 +369,11 @@ module.exports = class CameraControlCommand {
 			categories[category.key] = category;
 		}
 
-		this.PROTOCOL['groups'] = categories;
-		delete this.PROTOCOL['categories'];
+		protocol['groups'] = categories;
+		delete protocol['categories'];
 
-		fs.writeFileSync('./PROTOCOL_v2.json', JSON.stringify(this.PROTOCOL), { encoding: "utf8" });
-		console.log(this.PROTOCOL['groups']);
+		fs.writeFileSync('./PROTOCOL_v2.json', JSON.stringify(protocol), { encoding: "utf8" });
+		console.log(protocol['groups']);
 	}
 
 	slugify(str) {

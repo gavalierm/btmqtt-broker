@@ -7,15 +7,9 @@ const config = new ConfigService();
 const MqttClientService = require("./services/mqttClient");
 const mqttClient = new MqttClientService();
 
-const ProtocolService = require("./services/blackmagicProtocol.js");
-const protocol = new ProtocolService();
+const CameraControlProtocol = require("./services/CameraControlProtocol.js");
+const ccuService = new CameraControlProtocol();
 
-// Example usage
-const CameraControlCommandService = require("./services/CameraControlCommand.js");
-const ccu = new CameraControlCommandService();
-
-ccu.regenerateProtocolFile();
-return;
 const dataObject = {
 	class: 'ccu',
 	command: 2,
@@ -60,18 +54,6 @@ const dataObject = {
 	}
 };
 
-//var data = ccu.convertToDatagram(dataObject);
-//console.log(ccu.bufferToStringWithSpaces(data));
-
-//var data = ccu.convertToDataobject(data);
-//console.log(data);
-
-var data = ccu.convertToDataobject([255, 0, 0, 0, 128, 2, 0, 0]);
-console.log(data);
-
-
-return;
-
 
 function getRandom(min, max) {
 	return Math.round(Math.random() * (max - min) + min);
@@ -81,6 +63,32 @@ function onMessage(topic, message) {
 	console.log("Faker on message", topic, message.toString('utf-8'));
 }
 
+function publish(topic, message) {
+	mqttClient.publish("btmqtt/" + mqttClient.getIdentity() + "/bt/raw/tx", JSON.stringify(message));
+}
+
+function fakeCommand(command) {
+	var obj = {
+		class: 'ccu',
+
+		destination: 0,
+		commandLength: 0,
+		command: 0,
+		source: 0,
+
+		data: {
+			operation_type: 0
+		}
+	};
+
+	obj.data = {
+		...obj.data,
+		...command
+	}
+
+	return obj;
+}
+
 mqttClient.setPort(config.getConfig()['mqtt']['port']);
 mqttClient.setIdentity("faker_1");
 mqttClient.setOnMessage(onMessage);
@@ -88,20 +96,24 @@ mqttClient.connect();
 
 mqttClient.subscribe("btmqtt/" + mqttClient.getIdentity() + "/bt/raw/rx");
 
+var protocol = ccuService.getProtocol();
+
 var fakerInterval = setInterval(function() {
 
-		console.log(protocol.to_fixed16('0xfd9a'));
+		//console.log("Faker");
+		var group = Object.values(protocol['groups'])[getRandom(0, Object.keys(protocol['groups']).length - 1)]
+		var command = Object.values(group['parameters'])[getRandom(0, Object.keys(group['parameters']).length - 1)]
+		console.log("Faker", command);
+		var data = ccuService.convertToDatagram(fakeCommand(command));
+		console.log(ccuService.bufferToStringWithSpaces(data));
 
-		var data = { type: 'ccu', destination: 255, operation: 0, data: { video: { iso: { type: 'int9', value: 400 } } } };
-		console.log(protocol.jsonToPayload(data));
-		return;
+		//var data = ccuService.convertToDataobject(data);
+		//console.log(data);
+		//var data = ccuService.convertToDataobject([255, 0, 0, 0, 128, 2, 0, 0]); //bluetooth handskae
+		//var data = ccuService.convertToDataobject([255, 0, 0, 0, 128, 2, 0, 0]); //bluetooth handskae
+		//console.log(data);
 
-		var _group = protocol['groups'][getRandom(1, protocol['groups'].length - 1)];
-		var _param = _group['parameters'][getRandom(0, _group['parameters'].length - 1)];
+		//publish("", data);
 
-		var data = [_group['id'], _param['id'], protocol['types'][_param['type']], 0, 1, 2, 3, 4];
-		var cmd = [getRandom(5, 10), data.length, 0, 0].concat(data); //header [destination, lenght of data, cmd type, unused]
-
-		mqttClient.publish("btmqtt/" + mqttClient.getIdentity() + "/bt/raw/tx", JSON.stringify(cmd));
 	},
-	1000);
+	100);
