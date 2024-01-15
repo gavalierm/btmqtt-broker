@@ -142,7 +142,7 @@ module.exports = class CameraControlProtocol {
 					continue;
 				}
 				//console.log("BUILDING DATA");
-				this.writeDatablock(buffer, dataObject.data.data_type, dataObject.data.props[k].value, offset + this.STRUCT.payloadStart + (this.TYPES_LENGHTS[dataObject.data.data_type] * i));
+				this.writeDatablock(buffer, dataObject.data.data_type, dataObject.data.props[k].value, offset + this.STRUCT.payloadStart + i); //(this.TYPES_LENGHTS[dataObject.data.data_type] * i) //if wrong data?
 				i++;
 			}
 		}
@@ -220,7 +220,7 @@ module.exports = class CameraControlProtocol {
 		const source = datagram.readUInt8(offset + this.STRUCT.source);
 
 		const datablock = datagram.slice(offset + this.STRUCT.payloadStart, 8 + commandLength); //befor because we need lenght
-		console.log(datablock.length);
+		//console.log(datablock.length);
 		const group = datagram.readUInt8(offset + this.STRUCT.group);
 		const parameter = datagram.readUInt8(offset + this.STRUCT.parameter);
 		const dataType = this.getKeyByValue(this.DATA_TYPES, (datagram.readUInt8(offset + this.STRUCT.dataType) == 0 && datablock.length == 0) ? -1 : datagram.readUInt8(offset + this.STRUCT.dataType));
@@ -284,17 +284,15 @@ module.exports = class CameraControlProtocol {
 			//console.log(this.objLenght(dataObject.data.props));
 			if (p !== "default" && this.objLenght(dataObject.data.props) == 1) {
 				//strange, because one prop = no index and no index = default
-				console.log("Violate no index prop", p)
-				console.log("Violate no index prop", p)
-				console.log("Violate no index prop", p)
-				console.log("Violate no index prop", p)
-				console.log("Violate no index prop", p)
-				console.log("Violate no index prop", p)
+				console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+				console.log("This prop violate the index logic", p)
+				console.log("This is not huge problem if you dont need this command in real life, but is good to update the PROTOCOL file and fix the issues.")
+				console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
 			}
 			//read value
 			//console.log(dataObject.data.group_id, dataObject.data.id, dataObject.data.name, p, dataObject.data.data_type, datablock.length);
 			//console.log(datablock.length, i);
-			const value = this.readValue(datablock, (this.TYPES_LENGHTS[dataObject.data.data_type] * i), dataObject.data.data_type)
+			const value = this.readValue(datablock, i, dataObject.data.data_type) //(this.TYPES_LENGHTS[dataObject.data.data_type] * i) //if wrong data?
 			//console.log(value);
 			dataObject.data.props[p].value = value;
 			i++
@@ -329,8 +327,8 @@ module.exports = class CameraControlProtocol {
 	// Function to read a value of a specific type from the buffer
 	readValue(buffer, offset, type) {
 		//console.log(buffer.length, offset)
-		if (buffer.length == 0 || offset >= buffer.length - 1) {
-			console.log("NO DATA in BUFFER")
+		if (buffer.length == 0 || offset >= buffer.length) {
+			//console.log("NO DATA in BUFFER")
 			return null
 		}
 		switch (type) {
@@ -343,7 +341,6 @@ module.exports = class CameraControlProtocol {
 			case 'int8':
 				return buffer.readInt8(offset);
 			case 'int16':
-				console.log("READING int16")
 				return buffer.readInt16LE(offset);
 			case 'int32':
 				return buffer.readInt32LE(offset);

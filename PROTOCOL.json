@@ -2263,8 +2263,8 @@
 					"id": 1,
 					"name": "Set tally color",
 					"key": "set_tally_color",
-					"data_type": "int16",
-					"interpretation": "Custom: Set RGB color to tally RR GG BB YY",
+					"data_type": "uInt8",
+					"interpretation": "Custom: Set RGB color to tally RR GG BB AA",
 					"props":
 					{
 						"red":
@@ -2291,10 +2291,10 @@
 							"max": 255,
 							"value": null
 						},
-						"luma":
+						"alpha":
 						{
-							"name": "Luma",
-							"key": "luma",
+							"name": "Alpha",
+							"key": "alpha",
 							"min": 0,
 							"max": 255,
 							"value": null
@@ -2337,7 +2337,7 @@
 					"group_id": 129,
 					"group_name": "Bluetooth",
 					"group_key": "bluetooth",
-					"id": 0,
+					"id": 1,
 					"name": "Disconnect",
 					"key": "disconnect",
 					"data_type": "void",
@@ -2350,7 +2350,7 @@
 					"group_id": 129,
 					"group_name": "Bluetooth",
 					"group_key": "bluetooth",
-					"id": 1,
+					"id": 2,
 					"name": "Connect",
 					"key": "connect",
 					"data_type": "uInt8",
@@ -2412,7 +2412,7 @@
 					"group_id": 129,
 					"group_name": "Bluetooth",
 					"group_key": "bluetooth",
-					"id": 4,
+					"id": 3,
 					"name": "Passcode",
 					"key": "passcode",
 					"data_type": "int32",
