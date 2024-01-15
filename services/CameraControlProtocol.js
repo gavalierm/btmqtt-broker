@@ -19,6 +19,7 @@ module.exports = class CameraControlProtocol {
 			int64: 8,
 			string: 0, // Variable length, calculated dynamically
 			fixed16: 2,
+			uInt8: 1,
 		};
 		this.DATA_TYPES = {
 			void: -1, //have to be same as boolean: 0, but we fix this futher in code
@@ -29,6 +30,7 @@ module.exports = class CameraControlProtocol {
 			int64: 4,
 			string: 5,
 			fixed16: 128,
+			uInt8: 129 //custom beacuse mac address
 		};
 
 		this.OPERATION_TYPES = {
@@ -140,7 +142,7 @@ module.exports = class CameraControlProtocol {
 					continue;
 				}
 				//console.log("BUILDING DATA");
-				this.writeDatablock(buffer, dataObject.data.data_type, dataObject.data.props[k].value, offset + this.STRUCT.payloadStart + i);
+				this.writeDatablock(buffer, dataObject.data.data_type, dataObject.data.props[k].value, offset + this.STRUCT.payloadStart + (this.TYPES_LENGHTS[dataObject.data.data_type] * i));
 				i++;
 			}
 		}
@@ -155,6 +157,9 @@ module.exports = class CameraControlProtocol {
 	writeDatablock(buffer, type, value, offset) {
 		// Write the value based on the type
 		switch (type) {
+			case 'uInt8':
+				buffer.writeUInt8(this.minMax(value, 0, 255), offset);
+				break;
 			case 'void':
 				//void do not have value
 				//console.log("Void");
@@ -167,6 +172,7 @@ module.exports = class CameraControlProtocol {
 				break;
 			case 'int16':
 				buffer.writeInt16LE(this.minMax(value, -32768, 32767), offset);
+				offset = offset + 1;
 				break;
 			case 'int32':
 				buffer.writeInt32LE(this.minMax(value, -2147483648, 2147483647), offset);
@@ -186,6 +192,10 @@ module.exports = class CameraControlProtocol {
 			default:
 				throw new Error(`Invalid type: ${type}`);
 		}
+		//We need padd the data to their data_type?
+		// MAC address is FF FF FF FF FF FF which is 255 255 255 255 255 255 which is int16 (int8 is only 127)
+		// but int16 takes 2 bytes so the we need spacing like FF 00 FF 00 FF 00 FF 00 FF 00 FF 00
+		// because FF FF will be translated to 65535 not 255 255 
 		//console.log(buffer.length, this.calculatePadding(buffer.length));
 		//buffer.fill(0, offset, this.calculatePadding(buffer.length));
 	}
@@ -195,7 +205,8 @@ module.exports = class CameraControlProtocol {
 
 		assert(datagram !== undefined, 'datagram must be specified');
 		if (typeof datagram == 'string') {
-			datagram = datagram.split(' ').map(hex => parseInt(hex, 16))
+			// Split the clean MAC address into pairs of two characters
+			datagram = datagram.replace(/[:\s]/g, '').match(/.{2}/g).map(hex => parseInt(hex, 16));
 		}
 		if (Array.isArray(datagram)) {
 			datagram = this.arrayToBuffer(datagram);
@@ -209,7 +220,7 @@ module.exports = class CameraControlProtocol {
 		const source = datagram.readUInt8(offset + this.STRUCT.source);
 
 		const datablock = datagram.slice(offset + this.STRUCT.payloadStart, 8 + commandLength); //befor because we need lenght
-		//console.log(datablock);
+		console.log(datablock.length);
 		const group = datagram.readUInt8(offset + this.STRUCT.group);
 		const parameter = datagram.readUInt8(offset + this.STRUCT.parameter);
 		const dataType = this.getKeyByValue(this.DATA_TYPES, (datagram.readUInt8(offset + this.STRUCT.dataType) == 0 && datablock.length == 0) ? -1 : datagram.readUInt8(offset + this.STRUCT.dataType));
@@ -266,7 +277,7 @@ module.exports = class CameraControlProtocol {
 		    operation_type: 'assignValue'
 		  }
 		 **/
-
+		var i = 0;
 		for (var p in dataObject.data.props) {
 			var prop = dataObject.data.props[p];
 			// every prop prepresent the index of command, if command has no index the only one prop is populated - "default" prop 
@@ -281,9 +292,12 @@ module.exports = class CameraControlProtocol {
 				console.log("Violate no index prop", p)
 			}
 			//read value
-			console.log(dataObject.data.group_id, dataObject.data.id, dataObject.data.name, p, dataObject.data.data_type, datablock.length);
-			const value = this.readValue(datablock, 0, dataObject.data.data_type)
-			console.log(value);
+			//console.log(dataObject.data.group_id, dataObject.data.id, dataObject.data.name, p, dataObject.data.data_type, datablock.length);
+			//console.log(datablock.length, i);
+			const value = this.readValue(datablock, (this.TYPES_LENGHTS[dataObject.data.data_type] * i), dataObject.data.data_type)
+			//console.log(value);
+			dataObject.data.props[p].value = value;
+			i++
 		}
 
 		return dataObject;
@@ -314,10 +328,14 @@ module.exports = class CameraControlProtocol {
 
 	// Function to read a value of a specific type from the buffer
 	readValue(buffer, offset, type) {
-		if (buffer.length == 0) {
+		//console.log(buffer.length, offset)
+		if (buffer.length == 0 || offset >= buffer.length - 1) {
+			console.log("NO DATA in BUFFER")
 			return null
 		}
 		switch (type) {
+			case 'uInt8':
+				return buffer.readUInt8(offset);
 			case 'void':
 				return null;
 			case 'boolean':
@@ -325,6 +343,7 @@ module.exports = class CameraControlProtocol {
 			case 'int8':
 				return buffer.readInt8(offset);
 			case 'int16':
+				console.log("READING int16")
 				return buffer.readInt16LE(offset);
 			case 'int32':
 				return buffer.readInt32LE(offset);
@@ -425,7 +444,7 @@ module.exports = class CameraControlProtocol {
 
 	encodeMacAddress(macAddress) {
 		// Example usage
-		//const macAddress = "00:1A:2B:3C:4D:5E"; //or 001A2B3C4D5E
+		//const macAddress = "DD:1A:2B:3C:4D:5E"; //or 001A2B3C4D5E
 		//const byteDatagram = encodeMacAddress(macAddress);
 		// Remove any colons from the MAC address
 		const cleanMacAddress = macAddress.replace(/:/g, '');

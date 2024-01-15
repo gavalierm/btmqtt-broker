@@ -70,7 +70,7 @@ const groups_k = Object.keys(protocol['groups']).length - 1
 var k = 0;
 var c = 0;
 var fakerInterval = setInterval(function() {
-
+		return;
 		//console.log("Faker");
 		//var group = Object.values(protocol['groups'])[getRandom(0, Object.keys(protocol['groups']).length - 1)]
 		//var command = Object.values(group['parameters'])[getRandom(0, Object.keys(group['parameters']).length - 1)]
@@ -85,20 +85,23 @@ var fakerInterval = setInterval(function() {
 
 		//console.log("Faker", command);
 		var data = ccuService.convertToDatagram(fakeCommand(command));
-		//console.log(command.group_id, command.id, command.group_name, command.name)
-		//console.log("De", "Le", "Cm", "__", "Ca", "Pa", "Ty", "Op", "1_", "2_", "3_", "4_", "5_", "6_", "7_", "8_")
-		//console.log(ccuService.bufferToStringWithSpaces(data));
+		console.log(command.group_id, command.id, command.group_name, command.name)
+		console.log("De", "Le", "Cm", "__", "Ca", "Pa", "Ty", "Op", "1_", "2_", "3_", "4_", "5_", "6_", "7_", "8_")
+		console.log(ccuService.bufferToStringWithSpaces(data));
 
-		var data = ccuService.convertToDataobject(ccuService.bufferToStringWithSpaces(data));
+		//var data = ccuService.convertToDataobject(ccuService.bufferToStringWithSpaces(data));
 		//console.log(data.data.props);
 
 		//var data = ccuService.convertToDataobject(data);
 		//console.log(data);
 		//var data = ccuService.convertToDataobject("FF 06 00 00 05 00 80 00 00 08"); //bluetooth handskae
-		//var data = ccuService.convertToDataobject([255, 0, 0, 0, 128, 2, 0, 0]); //bluetooth handskae
-		//console.log(data);
+		//var data = ccuService.convertToDataobject("FF 04 00 00 81 01 02 00 DD 1A 2B 3C 4D 5E 00 00"); //bluetooth handskae
+		//console.log(data.data);
 
 		//publish("", data);
 
 	},
 	1);
+
+var data = ccuService.convertToDataobject("FF 0A 00 00 81 01 81 00 DD 1A 2B 3C 4D 5E 00 00"); //bluetooth handskae
+console.log(data.data);

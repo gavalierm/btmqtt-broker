@@ -2353,14 +2353,56 @@
 					"id": 1,
 					"name": "Connect",
 					"key": "connect",
-					"data_type": "int16",
+					"data_type": "uInt8",
 					"interpretation": "Custom: Connect to camera MAC address",
 					"props":
 					{
-						"default":
+						"0":
 						{
-							"name": "Default",
-							"key": "default",
+							"name": "0",
+							"key": "0",
+							"min": 0,
+							"max": 255,
+							"value": null
+						},
+						"1":
+						{
+							"name": "1",
+							"key": "1",
+							"min": 0,
+							"max": 255,
+							"value": null
+						},
+						"2":
+						{
+							"name": "2",
+							"key": "2",
+							"min": 0,
+							"max": 255,
+							"value": null
+						},
+						"3":
+						{
+							"name": "3",
+							"key": "3",
+							"min": 0,
+							"max": 255,
+							"value": null
+						},
+						"4":
+						{
+							"name": "4",
+							"key": "4",
+							"min": 0,
+							"max": 255,
+							"value": null
+						},
+						"5":
+						{
+							"name": "5",
+							"key": "5",
+							"min": 0,
+							"max": 255,
 							"value": null
 						}
 					}
