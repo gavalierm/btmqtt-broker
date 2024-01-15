@@ -22,7 +22,7 @@ function onMessage(topic, message) {
 }
 
 function publish(message) {
-	mqttClient.publish("btmqtt/ccu/" + mqttClient.getIdentity() + "", JSON.stringify(message));
+	mqttClient.publish("btmqtt/ccu/raw/upstream", message);
 }
 
 mqttClient.setPort(config.getConfig()['mqtt']['port']);
@@ -30,7 +30,7 @@ mqttClient.setIdentity("faker_1");
 mqttClient.setOnMessage(onMessage);
 mqttClient.connect();
 
-mqttClient.subscribe("btmqtt/ccu");
+mqttClient.subscribe("btmqtt/ccu/raw/downstream");
 
 var cmd = '';
 var data = undefined;

@@ -17,7 +17,18 @@ module.exports = class MqttBroker {
     this.httpServer = require('http').createServer()
     this.ws = require('websocket-stream').createServer({ server: this.httpServer }, aedes.handle)
   }
+
   run() {
+    function bufferToStringWithSpaces(buffer) {
+      let result = '';
+
+      for (let i = 0; i < buffer.length; i++) {
+        const byte = buffer.readUInt8(i).toString(16).padStart(2, '0');
+        result += byte.toUpperCase() + ' ';
+      }
+
+      return result.trim();
+    }
     // Subscribe to the 'client' event to log the connected clients
     aedes.on('client', (client) => {
       console.log(`[MQTT_broker] Client connected [ ${client.id} ]`)
@@ -25,13 +36,13 @@ module.exports = class MqttBroker {
     // emitted when a client subscribes to a message topic
     aedes.on('subscribe', function(subscriptions, client) {
       if (client) {
-        console.log(`[MQTT_broker] Client Sub [ ${(client ? client.id : 'Unknown')} ] > ${subscriptions.map(s => s.topic).join(',')}`)
+        console.log(`[MQTT_broker] Client Sub [ ${(client ? client.id : 'Unknown')} ] >`, subscriptions.map(s => s.topic).join(','))
       }
     })
     // emitted when a client publishes a message packet on the topic
     aedes.on('publish', function(packet, client) {
       if (client && packet.topic != 'system/heartbeat') {
-        console.log(`[MQTT_broker] Client Pub [ ${(client ? client.id : 'Unknown')} ] > ${packet.topic} "${packet.payload}"`)
+        console.log(typeof packet.payload, `[MQTT_broker] Client Pub [ ${(client ? client.id : 'Unknown')} ] >`, packet.topic, (typeof packet.payload == 'string' || typeof packet.payload == 'object') ? packet.payload : bufferToStringWithSpaces(packet.payload))
       }
     })
     //For supporting native MQTT client like ESP
