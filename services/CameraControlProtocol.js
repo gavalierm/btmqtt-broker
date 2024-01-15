@@ -385,27 +385,27 @@ module.exports = class CameraControlProtocol {
 				}
 				//
 				var datas = {};
-				if (this.objLenght(group['parameters'][p]['index']) == 0 && group['parameters'][p].data_type !== 'void') {
-					group['parameters'][p]['index'] = ["Default"];
+				if (this.objLenght(group['parameters'][p]['props']) == 0 && group['parameters'][p].data_type !== 'void') {
+					group['parameters'][p]['props'] = ["Default"];
 				}
-				if (this.objLenght(group['parameters'][p]['index']) == 0 && group['parameters'][p].data_type == 'boolean') {
-					group['parameters'][p]['index'] = ["Default"];
-					group['parameters'][p]['minimum'] = 0;
-					group['parameters'][p]['maximum'] = 1;
+				if (this.objLenght(group['parameters'][p]['props']) == 0 && group['parameters'][p].data_type == 'boolean') {
+					group['parameters'][p]['props'] = ["Default"];
+					group['parameters'][p]['min'] = 0;
+					group['parameters'][p]['max'] = 1;
 				}
-				//for (var i = 0; i < this.objLenght(group['parameters'][p]['index']); i++) {
-				for (var i in group['parameters'][p]['index']) {
+				//for (var i = 0; i < this.objLenght(group['parameters'][p]['props']); i++) {
+				for (var i in group['parameters'][p]['props']) {
 					//
 					var index = {
-						name: group['parameters'][p]['index'][i],
-						key: this.slugify(group['parameters'][p]['index'][i]),
-						min: group['parameters'][p]['minimum'],
-						max: group['parameters'][p]['maximum'],
+						name: group['parameters'][p]['props'][i],
+						key: this.slugify(group['parameters'][p]['props'][i]),
+						min: group['parameters'][p]['min'],
+						max: group['parameters'][p]['max'],
 						value: null
 					};
 					//console.log(index);
 					//
-					datas[this.slugify(group['parameters'][p]['index'][i])] = index;
+					datas[this.slugify(group['parameters'][p]['props'][i])] = index;
 				}
 				//console.log(datas);
 				parameter['data'] = datas;
