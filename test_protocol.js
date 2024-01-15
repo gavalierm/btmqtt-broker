@@ -33,7 +33,6 @@ function fakeCommand(command) {
 			command.props[k].value = null;
 		} else {
 			command.props[k].value = (command.props[k].max / 2);
-			command.props[k].value = command.props[k].max;
 		}
 
 	}
