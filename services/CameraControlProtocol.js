@@ -366,6 +366,40 @@ module.exports = class CameraControlProtocol {
 		return result.trim();
 	}
 
+	fakeCommand(command) {
+
+		var obj = {
+			class: 'ccu',
+
+			destination: 0,
+			commandLength: 0,
+			command: 0,
+			source: 0,
+
+			data: {
+				operation_type: 0
+			}
+		};
+
+		for (const k in command.props) {
+			//fake values set to max
+			if (command.props[k].max == undefined || command.props[k].max == null) {
+				command.props[k].value = null;
+			} else {
+				command.props[k].value = (command.props[k].max / 2);
+			}
+
+		}
+
+		obj.data = {
+			...obj.data,
+			...command
+		}
+
+
+
+		return obj;
+	}
 	validateDatagram(datagram) {
 		//console.log("Validate datagram", typeof datagram);
 		if (typeof datagram == 'string') {

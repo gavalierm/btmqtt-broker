@@ -42,7 +42,7 @@ module.exports = class MqttBroker {
     // emitted when a client publishes a message packet on the topic
     aedes.on('publish', function(packet, client) {
       if (client && packet.topic != 'system/heartbeat') {
-        console.log(typeof packet.payload, `[MQTT_broker] Client Pub [ ${(client ? client.id : 'Unknown')} ] >`, packet.topic, (typeof packet.payload == 'string' || typeof packet.payload == 'object') ? packet.payload : bufferToStringWithSpaces(packet.payload))
+        console.log(typeof packet.payload, `[MQTT_broker] Client Pub [ ${(client ? client.id : 'Unknown')} ] >`, packet.topic, (typeof packet.payload == 'string') ? packet.payload : bufferToStringWithSpaces(packet.payload))
       }
     })
     //For supporting native MQTT client like ESP

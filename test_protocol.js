@@ -6,48 +6,13 @@ const config = new ConfigService();
 
 const CameraControlProtocol = require("./services/CameraControlProtocol.js");
 const ccuService = new CameraControlProtocol();
-
+var protocol = ccuService.getProtocol();
 
 function getRandom(min, max) {
 	return Math.round(Math.random() * (max - min) + min);
 }
 
-function fakeCommand(command) {
 
-	var obj = {
-		class: 'ccu',
-
-		destination: 0,
-		commandLength: 0,
-		command: 0,
-		source: 0,
-
-		data: {
-			operation_type: 0
-		}
-	};
-
-	for (const k in command.props) {
-		//fake values set to max
-		if (command.props[k].max == undefined || command.props[k].max == null) {
-			command.props[k].value = null;
-		} else {
-			command.props[k].value = (command.props[k].max / 2);
-		}
-
-	}
-
-	obj.data = {
-		...obj.data,
-		...command
-	}
-
-
-
-	return obj;
-}
-
-var protocol = ccuService.getProtocol();
 
 const groups_k = Object.keys(protocol['groups']).length - 1
 
@@ -60,7 +25,7 @@ for (const k in protocol['groups']) {
 		var command = group['parameters'][c]
 
 		//console.log("Faker", command);
-		var data = ccuService.convertToDatagram(fakeCommand(command));
+		var data = ccuService.convertToDatagram(ccuService.fakeCommand(command));
 		console.log(command.group_id, command.id, command.group_name, command.name)
 		console.log("De", "Le", "Cm", "__", "Ca", "Pa", "Ty", "Op", "1_", "2_", "3_", "4_", "5_", "6_", "7_", "8_")
 		var cmd = ccuService.bufferToStringWithSpaces(data)

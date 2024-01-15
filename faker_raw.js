@@ -26,7 +26,7 @@ function publish(message) {
 }
 
 mqttClient.setPort(config.getConfig()['mqtt']['port']);
-mqttClient.setIdentity("faker_1");
+mqttClient.setIdentity("faker_raw");
 mqttClient.setOnMessage(onMessage);
 mqttClient.connect();
 
@@ -36,9 +36,9 @@ var cmd = '';
 var data = undefined;
 var fakerInterval = setInterval(function() {
 
-		console.log("Faker: ", "De", "Le", "Cm", "__", "Ca", "Pa", "Ty", "Op", "1_", "2_", "3_", "4_", "5_", "6_", "7_", "8_")
+		console.log("Faker RAW: ", "De", "Le", "Cm", "__", "Ca", "Pa", "Ty", "Op", "1_", "2_", "3_", "4_", "5_", "6_", "7_", "8_")
 		cmd = "FF 0A 00 00 81 02 81 00 DD 1A 2B 3C 4D 5E 00 00"
-		console.log("Faker: ", cmd);
+		console.log("Faker RAW: ", cmd);
 		publish(ccuService.validateDatagram(cmd)) //create buffer from cmd string
 		//publish(cmd)
 
