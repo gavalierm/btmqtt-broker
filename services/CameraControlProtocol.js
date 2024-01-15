@@ -6,7 +6,7 @@ const fs = require('fs')
 module.exports = class CameraControlProtocol {
 	constructor() {
 		//parse protocol schema from file
-		this.PATH = './PROTOCOL_v2.json';
+		this.PATH = './PROTOCOL.json';
 		this.PROTOCOL = JSON.parse(fs.readFileSync(this.PATH, 'utf8'))
 
 		// Define the lengths of different types for padding calculations
@@ -438,7 +438,7 @@ module.exports = class CameraControlProtocol {
 		protocol['groups'] = groups;
 		delete protocol['groups'];
 
-		fs.writeFileSync('./PROTOCOL_v2.json', JSON.stringify(protocol), { encoding: "utf8" });
+		fs.writeFileSync('./PROTOCOL_rebuild.json', JSON.stringify(protocol), { encoding: "utf8" });
 		console.log(protocol['groups']);
 	}
 
