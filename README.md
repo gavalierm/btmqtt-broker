@@ -1,5 +1,5 @@
 # btmqtt-broker
-Main function is provide MQTT service for btmqtt-esp to send and receive bluetooth payload to blackmagic camera via MQTT.
+Goal is provide MQTT service for btmqtt-esp to send and receive bluetooth payload to blackmagic camera via MQTT.
 
 ## Modules
 - MQTT borker server
