@@ -10,50 +10,6 @@ const mqttClient = new MqttClientService();
 const CameraControlProtocol = require("./services/CameraControlProtocol.js");
 const ccuService = new CameraControlProtocol();
 
-const dataObject = {
-	class: 'ccu',
-	command: 2,
-	destination: 255,
-	operation: 255,
-	data: {
-		category_id: 1,
-		category_name: "Video",
-		category_key: "video",
-		parameter_id: 14,
-		name: "ISO",
-		key: "iso",
-		data_type: "int8",
-		index: {
-			frame_rate: {
-				name: "Frame rate",
-				key: 'frame_rate',
-				value: 24
-			},
-			m_rate: {
-				name: "M-rate",
-				key: 'm_rate',
-				value: 1
-			},
-			dimensions: {
-				name: "Dimensions",
-				key: 'dimensions',
-				value: 3
-			},
-			interlaced: {
-				name: "M-rate",
-				key: 'interlaced'
-			},
-			color_space: {
-				name: "Color space",
-				key: 'color_space'
-			}
-		},
-		minimum: 0,
-		maximum: 2147483647,
-		interpretation: "ISO value"
-	}
-};
-
 
 function getRandom(min, max) {
 	return Math.round(Math.random() * (max - min) + min);
@@ -68,6 +24,7 @@ function publish(topic, message) {
 }
 
 function fakeCommand(command) {
+
 	var obj = {
 		class: 'ccu',
 
@@ -81,10 +38,17 @@ function fakeCommand(command) {
 		}
 	};
 
+	for (const k in command.props) {
+		//fake values set to max
+		command.props[k].value = command.props[k].max;
+	}
+
 	obj.data = {
 		...obj.data,
 		...command
 	}
+
+
 
 	return obj;
 }
@@ -96,24 +60,45 @@ mqttClient.connect();
 
 mqttClient.subscribe("btmqtt/" + mqttClient.getIdentity() + "/bt/raw/rx");
 
+//var data = ccuService.convertToDataobject("FF 0C 00 00 80 01 02 00 FF FF FF FF 00 00 00 00");
+//console.log(data, data.data.props);
+//return;
 var protocol = ccuService.getProtocol();
 
+const groups_k = Object.keys(protocol['groups']).length - 1
+
+var k = 0;
+var c = 0;
 var fakerInterval = setInterval(function() {
 
 		//console.log("Faker");
-		var group = Object.values(protocol['groups'])[getRandom(0, Object.keys(protocol['groups']).length - 1)]
-		var command = Object.values(group['parameters'])[getRandom(0, Object.keys(group['parameters']).length - 1)]
-		console.log("Faker", command);
+		//var group = Object.values(protocol['groups'])[getRandom(0, Object.keys(protocol['groups']).length - 1)]
+		//var command = Object.values(group['parameters'])[getRandom(0, Object.keys(group['parameters']).length - 1)]
+		var group = Object.values(protocol['groups'])[k]
+		var command = Object.values(group['parameters'])[c]
+
+		c++;
+		if (c > (Object.keys(group['parameters']).length - 1)) {
+			k++;
+			c = 0;
+		}
+
+		//console.log("Faker", command);
 		var data = ccuService.convertToDatagram(fakeCommand(command));
-		console.log(ccuService.bufferToStringWithSpaces(data));
+		//console.log(command.group_id, command.id, command.group_name, command.name)
+		//console.log("De", "Le", "Cm", "__", "Ca", "Pa", "Ty", "Op", "1_", "2_", "3_", "4_", "5_", "6_", "7_", "8_")
+		//console.log(ccuService.bufferToStringWithSpaces(data));
+
+		var data = ccuService.convertToDataobject(ccuService.bufferToStringWithSpaces(data));
+		//console.log(data.data.props);
 
 		//var data = ccuService.convertToDataobject(data);
 		//console.log(data);
-		//var data = ccuService.convertToDataobject([255, 0, 0, 0, 128, 2, 0, 0]); //bluetooth handskae
+		//var data = ccuService.convertToDataobject("FF 06 00 00 05 00 80 00 00 08"); //bluetooth handskae
 		//var data = ccuService.convertToDataobject([255, 0, 0, 0, 128, 2, 0, 0]); //bluetooth handskae
 		//console.log(data);
 
 		//publish("", data);
 
 	},
-	100);
+	1);

@@ -42,7 +42,7 @@ module.exports = class CameraControlProtocol {
 			commandLength: 1,
 			command: 2,
 			source: 3,
-			category: 4,
+			group: 4,
 			parameter: 5,
 			dataType: 6,
 			operationType: 7,
@@ -53,12 +53,13 @@ module.exports = class CameraControlProtocol {
 	}
 
 	getProtocol() {
-		return this.PROTOCOL;
+		return JSON.parse(JSON.stringify(this.PROTOCOL));
 	}
 
 	getKeyByValue(object, value) {
-		//assert(object !== undefined, 'getKeyByValue object must be specified');
-		//assert(value !== undefined, 'getKeyByValue value must be specified');
+		if (object == undefined) {
+			return undefined;
+		}
 
 		return Object.keys(object).find(key => object[key] === value);
 	}
@@ -76,8 +77,8 @@ module.exports = class CameraControlProtocol {
 	// Function to calculate the length of the datablock after conversion
 	calculateDatablockLength(dataBlock) {
 		let length = 0;
-		if (dataBlock.hasOwnProperty('props') && dataBlock.props !== undefined && Object.keys(dataBlock.props).length !== 0) {
-			console.log("Inside Proprs", dataBlock.props);
+		if (dataBlock.hasOwnProperty('props') && dataBlock.props !== undefined && this.objLenght(dataBlock.props) !== 0) {
+			//console.log("Inside Proprs", dataBlock.props);
 			for (const k in dataBlock.props) {
 				if (dataBlock.props[k].value == undefined || dataBlock.props[k].value == null) {
 					continue
@@ -89,8 +90,6 @@ module.exports = class CameraControlProtocol {
 					length += this.TYPES_LENGHTS[dataBlock.data_type];
 				}
 			}
-		} else {
-			console.log("Outside Proprs", dataBlock.props);
 		}
 		return length; //because padding is not counted
 	}
@@ -113,10 +112,10 @@ module.exports = class CameraControlProtocol {
 
 		const destination = dataObject.destination ? dataObject.destination : 255;
 		const operationType = dataObject.operation ? dataObject.operation : 'assignValue';
-		console.log("Props", dataObject.data.props);
+		//console.log("Props", dataObject.data.props);
 		const datablockLength = this.calculateDatablockLength(dataObject.data);
 		//console.log("len", this.calculatePadding(datablockLength));
-		const buffer = Buffer.alloc(8 + this.calculatePadding(datablockLength)); // 8 bytes for the header
+		const buffer = Buffer.alloc(8 + this.calculatePadding(datablockLength)); // 8 bytes for the header + data + padding
 
 		const offset = 0;
 		// Write header
@@ -125,50 +124,55 @@ module.exports = class CameraControlProtocol {
 		buffer.writeUInt8(dataObject.id, offset + this.STRUCT.command);
 		buffer.writeUInt8(0, offset + this.STRUCT.source); // Unused byte
 		//
-		buffer.writeUInt8(dataObject.data.group_id, offset + this.STRUCT.category);
+		//return buffer;
+		buffer.writeUInt8(dataObject.data.group_id, offset + this.STRUCT.group);
 		buffer.writeUInt8(dataObject.data.id, offset + this.STRUCT.parameter);
 		buffer.writeUInt8((this.DATA_TYPES[dataObject.data.data_type] < 0) ? 0 : this.DATA_TYPES[dataObject.data.data_type], offset + this.STRUCT.dataType); //void interpreted as 0 not -1 which is out of range
 		buffer.writeUInt8(this.OPERATION_TYPES[operationType], offset + this.STRUCT.operationType);
-
+		//return buffer;
 		// Write datablock
-		if (dataObject.data.props !== undefined && Object.keys(dataObject.data.props).length !== 0) {
+		if (dataObject.data.props !== undefined && this.objLenght(dataObject.data.props) !== 0) {
 			var i = 0;
 			for (const k in dataObject.data.props) {
+				//console.log("BUILDING DATA");
 				if (!dataObject.data.props[k].hasOwnProperty('value') || dataObject.data.props[k].value == undefined || dataObject.data.props[k].value == null) {
+					i++;
 					continue;
 				}
+				//console.log("BUILDING DATA");
 				this.writeDatablock(buffer, dataObject.data.data_type, dataObject.data.props[k].value, offset + this.STRUCT.payloadStart + i);
 				i++;
 			}
 		}
 
-
 		return buffer;
 	}
 
 	// Function to write the datablock to the buffer
+	minMax(value, min, max) {
+		return (value > max) ? max : ((value < min) ? min : value)
+	}
 	writeDatablock(buffer, type, value, offset) {
-
 		// Write the value based on the type
 		switch (type) {
 			case 'void':
 				//void do not have value
-				console.log("Void");
+				//console.log("Void");
 				break;
 			case 'boolean':
 				buffer.writeUInt8(value ? 1 : 0, offset);
 				break;
 			case 'int8':
-				buffer.writeInt8(value, offset);
+				buffer.writeInt8(this.minMax(value, -128, 127), offset);
 				break;
 			case 'int16':
-				buffer.writeInt16LE(value, offset);
+				buffer.writeInt16LE(this.minMax(value, -32768, 32767), offset);
 				break;
 			case 'int32':
-				buffer.writeInt32LE(value, offset);
+				buffer.writeInt32LE(this.minMax(value, -2147483648, 2147483647), offset);
 				break;
 			case 'int64':
-				buffer.writeBigInt64LE(BigInt(value), offset);
+				buffer.writeBigInt64LE(this.minMax(BigInt(value), (2 ^ 63) * -1, 2 ^ 63 - 1), offset);
 				break;
 			case 'string':
 				// Write the string at the current offset
@@ -177,23 +181,22 @@ module.exports = class CameraControlProtocol {
 				buffer.writeUInt8(0, offset + Buffer.from(value, 'utf-8').length);
 				break;
 			case 'fixed16':
-				const fixed16Value = Math.round(value * (1 << 11)); // Convert to fixed16
-				buffer.writeInt16LE(fixed16Value, offset);
+				buffer.writeInt16LE(this.minMax(Math.round(value * (1 << 11)), -32768, 32767), offset);
 				break;
 			default:
 				throw new Error(`Invalid type: ${type}`);
 		}
-
-		// Add padding if necessary
-		//const padding = this.calculatePadding(buffer.length - offset);
-		//buffer.fill(0, offset + this.TYPES_LENGHTS[type], offset + this.TYPES_LENGHTS[type] + padding);
+		//console.log(buffer.length, this.calculatePadding(buffer.length));
+		//buffer.fill(0, offset, this.calculatePadding(buffer.length));
 	}
 
 	// Function to reverse convert datagram to dataObject
 	convertToDataobject(datagram) {
 
 		assert(datagram !== undefined, 'datagram must be specified');
-
+		if (typeof datagram == 'string') {
+			datagram = datagram.split(' ').map(hex => parseInt(hex, 16))
+		}
 		if (Array.isArray(datagram)) {
 			datagram = this.arrayToBuffer(datagram);
 		}
@@ -206,16 +209,11 @@ module.exports = class CameraControlProtocol {
 		const source = datagram.readUInt8(offset + this.STRUCT.source);
 
 		const datablock = datagram.slice(offset + this.STRUCT.payloadStart, 8 + commandLength); //befor because we need lenght
-
-		const category = datagram.readUInt8(offset + this.STRUCT.category);
+		//console.log(datablock);
+		const group = datagram.readUInt8(offset + this.STRUCT.group);
 		const parameter = datagram.readUInt8(offset + this.STRUCT.parameter);
-		const dataType = this.getKeyByValue(this.DATA_TYPES, (datagram.readUInt8(offset + this.STRUCT.dataType) == 0 && datablock.length == 0) ? -1 : 0);
+		const dataType = this.getKeyByValue(this.DATA_TYPES, (datagram.readUInt8(offset + this.STRUCT.dataType) == 0 && datablock.length == 0) ? -1 : datagram.readUInt8(offset + this.STRUCT.dataType));
 		const operationType = this.getKeyByValue(this.OPERATION_TYPES, datagram.readUInt8(offset + this.STRUCT.operationType));
-
-
-		if (datablock.length) {
-			//todo
-		}
 
 		var dataObject = {
 			class: 'ccu',
@@ -226,42 +224,86 @@ module.exports = class CameraControlProtocol {
 			source: source,
 
 			data: {
-				group_id: category,
+				group_id: group,
 				id: parameter,
 				data_type: dataType,
 				operation_type: operationType,
-				//value: value
+				//props: {}
 			}
 		};
 
 		//we need to determine packet type by group_id and id and found protocol stcuture to merge
 		//this is first time when protocol is needed to decode message
-		var protocol_object = this.findObjectInProtocol(category, parameter);
+		var protocol_object = this.findObjectInProtocol(group, parameter);
 		//
-
+		//console.log(protocol_object);
+		//return protocol_object;
 		dataObject.data = {
 			...protocol_object,
 			...dataObject.data
 		}
 
+		//return dataObject;
+		//We now hove merged object as json - is time to read datablock from datagram based on object props 
+		//here real magic starts
+		/**
+		 data: {
+		    group_id: 128,
+		    group_name: 'RGB Tally',
+		    group_key: 'rgb_tally',
+		    id: 1,
+		    name: 'Set tally color',
+		    key: 'set_tally_color',
+		    data_type: 'boolean',
+		    interpretation: 'Custom: Set RGB color to tally RR GG BB YY',
+		    props: 
+		    {
+			  red: { name: 'Red', key: 'red', max: 255, value: null },
+			  green: { name: 'Green', key: 'green', max: 255, value: null },
+			  blue: { name: 'Blue', key: 'blue', max: 255, value: null },
+			  luma: { name: 'Luma', key: 'luma', max: 255, value: null }
+			},
+		    operation_type: 'assignValue'
+		  }
+		 **/
+
+		for (var p in dataObject.data.props) {
+			var prop = dataObject.data.props[p];
+			// every prop prepresent the index of command, if command has no index the only one prop is populated - "default" prop 
+			//console.log(this.objLenght(dataObject.data.props));
+			if (p !== "default" && this.objLenght(dataObject.data.props) == 1) {
+				//strange, because one prop = no index and no index = default
+				console.log("Violate no index prop", p)
+				console.log("Violate no index prop", p)
+				console.log("Violate no index prop", p)
+				console.log("Violate no index prop", p)
+				console.log("Violate no index prop", p)
+				console.log("Violate no index prop", p)
+			}
+			//read value
+			console.log(dataObject.data.group_id, dataObject.data.id, dataObject.data.name, p, dataObject.data.data_type, datablock.length);
+			const value = this.readValue(datablock, 0, dataObject.data.data_type)
+			console.log(value);
+		}
+
 		return dataObject;
 	}
 
-	findObjectInProtocol(category, parameter) {
+	findObjectInProtocol(group, parameter) {
 		//
-		//console.log(category, parameter);
+		//console.log(group, parameter);
 		//
-		for (const c in this.PROTOCOL.categories) {
-			if (this.PROTOCOL.categories[c]['id'] != category) {
+		for (const c in this.PROTOCOL.groups) {
+			if (this.PROTOCOL.groups[c]['id'] != group) {
 				continue;
 			}
 			//console.log("found");
-			for (const p in this.PROTOCOL.categories[c]['parameters']) {
-				if (this.PROTOCOL.categories[c]['parameters'][p]['id'] != parameter) {
+			for (const p in this.PROTOCOL.groups[c]['parameters']) {
+				if (this.PROTOCOL.groups[c]['parameters'][p]['id'] != parameter) {
 					continue;
 				}
 				//console.log("found");
-				return this.PROTOCOL.categories[c]['parameters'][p];
+				return this.PROTOCOL.groups[c]['parameters'][p];
 				break;
 			}
 			break;
@@ -272,10 +314,12 @@ module.exports = class CameraControlProtocol {
 
 	// Function to read a value of a specific type from the buffer
 	readValue(buffer, offset, type) {
+		if (buffer.length == 0) {
+			return null
+		}
 		switch (type) {
 			case 'void':
-				//void do not have value
-				return;
+				return null;
 			case 'boolean':
 				return buffer.readUInt8(offset) !== 0;
 			case 'int8':
@@ -318,64 +362,97 @@ module.exports = class CameraControlProtocol {
 
 	regenerateProtocolFile() {
 		var protocol = JSON.parse(fs.readFileSync(this.PATH, 'utf8'))
-		var categories = {};
-		for (var c = 0; c < protocol['categories'].length; c++) {
+		var groups = {};
+		//for (var c = 0; c < this.objLenght(protocol['groups']); c++) {
+		for (var c in protocol['groups']) {
 			//
-			var category = protocol['categories'][c];
+			var group = protocol['groups'][c];
 			//
 
 			var parameters = {};
-			for (var p = 0; p < category['parameters'].length; p++) {
+			//for (var p = 0; p < this.objLenght(group['parameters']); p++) {
+			for (var p in group['parameters']) {
 				//
 				var parameter = {
-					group_id: category.id,
-					group_name: category.name,
-					group_key: category.key,
-					id: category['parameters'][p].id,
-					name: category['parameters'][p].name,
-					key: category['parameters'][p].key,
-					data_type: category['parameters'][p].data_type,
-					interpretation: category['parameters'][p].interpretation ? category['parameters'][p].interpretation : ''
+					group_id: group.id,
+					group_name: group.name,
+					group_key: group.key,
+					id: group['parameters'][p].id,
+					name: group['parameters'][p].name,
+					key: group['parameters'][p].key,
+					data_type: group['parameters'][p].data_type,
+					interpretation: group['parameters'][p].interpretation ? group['parameters'][p].interpretation : ''
 				}
 				//
 				var datas = {};
-				if (category['parameters'][p]['index'].length == 0 && category['parameters'][p].data_type !== 'void') {
-					category['parameters'][p]['index'] = ["Default"];
+				if (this.objLenght(group['parameters'][p]['index']) == 0 && group['parameters'][p].data_type !== 'void') {
+					group['parameters'][p]['index'] = ["Default"];
 				}
-				if (category['parameters'][p]['index'].length == 0 && category['parameters'][p].data_type == 'boolean') {
-					category['parameters'][p]['index'] = ["Default"];
-					category['parameters'][p]['minimum'] = 0;
-					category['parameters'][p]['maximum'] = 1;
+				if (this.objLenght(group['parameters'][p]['index']) == 0 && group['parameters'][p].data_type == 'boolean') {
+					group['parameters'][p]['index'] = ["Default"];
+					group['parameters'][p]['minimum'] = 0;
+					group['parameters'][p]['maximum'] = 1;
 				}
-				for (var i = 0; i < category['parameters'][p]['index'].length; i++) {
+				//for (var i = 0; i < this.objLenght(group['parameters'][p]['index']); i++) {
+				for (var i in group['parameters'][p]['index']) {
 					//
 					var index = {
-						name: category['parameters'][p]['index'][i],
-						key: this.slugify(category['parameters'][p]['index'][i]),
-						min: category['parameters'][p]['minimum'],
-						max: category['parameters'][p]['maximum'],
+						name: group['parameters'][p]['index'][i],
+						key: this.slugify(group['parameters'][p]['index'][i]),
+						min: group['parameters'][p]['minimum'],
+						max: group['parameters'][p]['maximum'],
 						value: null
 					};
 					//console.log(index);
 					//
-					datas[this.slugify(category['parameters'][p]['index'][i])] = index;
+					datas[this.slugify(group['parameters'][p]['index'][i])] = index;
 				}
 				//console.log(datas);
 				parameter['data'] = datas;
 				console.log(parameter);
 				parameters[parameter.key] = parameter;
 			}
-			category['parameters'] = parameters;
-			categories[category.key] = category;
+			group['parameters'] = parameters;
+			groups[group.key] = group;
 		}
 
-		protocol['groups'] = categories;
-		delete protocol['categories'];
+		protocol['groups'] = groups;
+		delete protocol['groups'];
 
 		fs.writeFileSync('./PROTOCOL_v2.json', JSON.stringify(protocol), { encoding: "utf8" });
 		console.log(protocol['groups']);
 	}
 
+	encodeMacAddress(macAddress) {
+		// Example usage
+		//const macAddress = "00:1A:2B:3C:4D:5E"; //or 001A2B3C4D5E
+		//const byteDatagram = encodeMacAddress(macAddress);
+		// Remove any colons from the MAC address
+		const cleanMacAddress = macAddress.replace(/:/g, '');
+
+		// Split the clean MAC address into pairs of two characters
+		const macPairs = cleanMacAddress.match(/.{2}/g);
+
+		// Convert each pair to a byte and store in an array
+		const byteDatagram = macPairs.map(pair => parseInt(pair, 16));
+
+		return byteDatagram;
+	}
+
+	decodeMacAddress(byteDatagram) {
+		// Example usage
+		//const byteDatagram = [0x00, 0x1A, 0x2B, 0x3C, 0x4D, 0x5E];
+		//const decodedMacAddress = decodeMacAddress(byteDatagram);
+		// Convert each byte to a hexadecimal string, pad with zeros, and join with colons
+		const macAddress = byteDatagram.map(byte => byte.toString(16).padStart(2, '0')).join(':');
+
+		return macAddress.toUpperCase(); // Convert to uppercase for consistency
+	}
+
+
+	objLenght(obj) {
+		return Object.keys(obj).length;
+	}
 	slugify(str) {
 		const delimiter = '_';
 		str = str.replace(/^\s+|\s+$/g, ''); // trim leading/trailing white space
