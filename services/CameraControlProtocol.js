@@ -204,13 +204,8 @@ module.exports = class CameraControlProtocol {
 	convertToDataobject(datagram) {
 
 		assert(datagram !== undefined, 'datagram must be specified');
-		if (typeof datagram == 'string') {
-			// Split the clean MAC address into pairs of two characters
-			datagram = datagram.replace(/[:\s]/g, '').match(/.{2}/g).map(hex => parseInt(hex, 16));
-		}
-		if (Array.isArray(datagram)) {
-			datagram = this.arrayToBuffer(datagram);
-		}
+
+		datagram = this.validateDatagram(datagram);
 
 		const offset = 0;
 
@@ -371,9 +366,20 @@ module.exports = class CameraControlProtocol {
 		return result.trim();
 	}
 
-	arrayToBuffer(hexArray) {
-		const buffer = Buffer.from(hexArray);
-		return buffer;
+	validateDatagram(datagram) {
+		//console.log("Validate datagram", typeof datagram);
+		if (typeof datagram == 'string') {
+			// Split the clean MAC address into pairs of two characters
+			//console.log("Datagram is string");
+			datagram = datagram.replace(/[:\s]/g, '').match(/.{2}/g).map(hex => parseInt(hex, 16));
+		}
+
+		if (Array.isArray(datagram)) {
+			//console.log("Datagram is Array");
+			datagram = Buffer.from(datagram);
+		}
+
+		return datagram;
 	}
 
 	regenerateProtocolFile() {
