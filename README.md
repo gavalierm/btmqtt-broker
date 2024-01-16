@@ -1,5 +1,15 @@
-# btmqtt-broker
-Goal is provide MQTT service for btmqtt-esp to send and receive bluetooth payload to blackmagic camera via MQTT.
+# BROKER for Bluetooth to MQTT service for Blackmagic Pocket Camera
+Goal is interconnect Blackmagic Pocket Camera (or others from Blackmagic) with other Network clients.
+Because Pocket camera has only Bluetooth connection we need something to bridge bluetooth and wifi.
+
+Connection flow:
+- CAMERA
+- (bluetooth)
+- ESP32-C3/S3 (BT to MQTT logic)
+- (wifi network)
+- BROKER
+- (wifi/hardwire network)
+- CLIENTs
 
 ## Modules
 - MQTT borker server
