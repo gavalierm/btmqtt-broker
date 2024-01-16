@@ -1,4 +1,4 @@
-# BROKER for Blackmagic Pocket Camera Bluetooth to MQTT service 
+# BROKER for Blackmagic Pocket Camera BLUETOOTH to MQTT service 
 Goal is interconnect Blackmagic Pocket Camera (or others from Blackmagic) with other Network clients.
 Because Pocket camera has only Bluetooth connection we need something to bridge bluetooth and wifi.
 
