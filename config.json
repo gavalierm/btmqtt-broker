@@ -1,4 +1,8 @@
  {
+  "websocket":
+  {
+    "port": 3883
+  },
   "mqtt":
   {
     "port": 1883,
