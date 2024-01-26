@@ -1,6 +1,10 @@
-# BROKER for Blackmagic Pocket Camera BLUETOOTH to MQTT service
+# BROKER for Blackmagic Pocket Camera BLE to MQTT service
 
 The goal is to establish interconnectivity between the Blackmagic Pocket Camera (or other Blackmagic cameras) and various network clients. Since the Pocket Camera exclusively utilizes Bluetooth for connectivity, we require a solution to bridge the gap between Bluetooth and Wi-Fi.
+
+## Note:
+
+The actual MQTT broker is not essential. You can use any of your favorite, or custom like this. This LIB only contains some special LOG functions to see BUFFER data if needed.
 
 
 ## Connection scenario:
